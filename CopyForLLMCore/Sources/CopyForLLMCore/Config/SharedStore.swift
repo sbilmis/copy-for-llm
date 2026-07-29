@@ -27,10 +27,20 @@ public struct SharedStore: Sendable {
         if let directory {
             self.directory = directory
         } else {
-            let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            self.directory = support.appendingPathComponent("CopyForLLM", isDirectory: true)
+            self.directory = Self.realHomeDirectory()
+                .appendingPathComponent("Library/Application Support/CopyForLLM", isDirectory: true)
         }
         try? FileManager.default.createDirectory(at: self.directory, withIntermediateDirectories: true)
+    }
+
+    /// The user's actual home, not the sandbox container — the sandboxed Quick Action
+    /// extensions reach the shared directory through a temporary-exception entitlement,
+    /// which is expressed relative to the real home.
+    static func realHomeDirectory() -> URL {
+        if let pw = getpwuid(getuid()), let dir = pw.pointee.pw_dir {
+            return URL(fileURLWithPath: String(cString: dir), isDirectory: true)
+        }
+        return FileManager.default.homeDirectoryForCurrentUser
     }
 
     private var settingsURL: URL { directory.appendingPathComponent("settings.json") }

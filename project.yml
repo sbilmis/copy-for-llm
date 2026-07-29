@@ -21,6 +21,46 @@ settings:
     CURRENT_PROJECT_VERSION: "1"
     MARKETING_VERSION: "0.1.0"
 
+targetTemplates:
+  QuickAction:
+    type: app-extension
+    platform: macOS
+    sources:
+      - Extensions/${dir}
+      - Extensions/Shared
+    dependencies:
+      - package: CopyForLLMCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.selcukbilmis.copyforllm.${bundleSuffix}
+    # pkd refuses to register unsandboxed app extensions. The temporary exception
+    # gives the sandboxed extensions access to the shared settings directory —
+    # fine for direct distribution; an App Store build would use an App Group.
+    entitlements:
+      path: Extensions/${dir}/Action.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.files.user-selected.read-only: true
+        com.apple.security.temporary-exception.files.home-relative-path.read-write:
+          - /Library/Application Support/CopyForLLM/
+    info:
+      path: Extensions/${dir}/Info.plist
+      properties:
+        CFBundleDisplayName: ${displayName}
+        CFBundleName: ${displayName}
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.services
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ActionRequestHandler
+          NSExtensionAttributes:
+            NSExtensionServiceAllowsFinderPreviewItem: true
+            NSExtensionActivationRule: >-
+              SUBQUERY(extensionItems, $extensionItem,
+              SUBQUERY($extensionItem.attachments, $attachment,
+              ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.item").@count > 0
+              ).@count > 0
+
 targets:
   CopyForLLM:
     type: application
@@ -29,6 +69,14 @@ targets:
       - App
     dependencies:
       - package: CopyForLLMCore
+      - target: CopyDefaultAction
+        embed: true
+      - target: CopyTreeAction
+        embed: true
+      - target: CopyPathsAction
+        embed: true
+      - target: CopyOptionsAction
+        embed: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.selcukbilmis.copyforllm
@@ -46,3 +94,31 @@ targets:
           - CFBundleURLName: com.selcukbilmis.copyforllm
             CFBundleURLSchemes:
               - copyforllm
+
+  CopyDefaultAction:
+    templates: [QuickAction]
+    templateAttributes:
+      dir: CopyDefault
+      bundleSuffix: action-copy
+      displayName: "Copy for LLM"
+
+  CopyTreeAction:
+    templates: [QuickAction]
+    templateAttributes:
+      dir: CopyTree
+      bundleSuffix: action-tree
+      displayName: "Copy Tree for LLM"
+
+  CopyPathsAction:
+    templates: [QuickAction]
+    templateAttributes:
+      dir: CopyPaths
+      bundleSuffix: action-paths
+      displayName: "Copy Paths"
+
+  CopyOptionsAction:
+    templates: [QuickAction]
+    templateAttributes:
+      dir: CopyOptions
+      bundleSuffix: action-options
+      displayName: "Copy for LLM (Options…)"
