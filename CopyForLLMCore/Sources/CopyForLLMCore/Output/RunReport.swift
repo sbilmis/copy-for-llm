@@ -40,7 +40,8 @@ public struct RunReport: Sendable {
         return parts.joined(separator: ", ")
     }
 
-    static func abbreviate(_ n: Int) -> String {
+    /// Compact count for status bars and notifications: 1500 → "1.5k".
+    public static func abbreviate(_ n: Int) -> String {
         switch n {
         case ..<1000: "\(n)"
         case ..<1_000_000: String(format: "%.1fk", Double(n) / 1000).replacingOccurrences(of: ".0k", with: "k")

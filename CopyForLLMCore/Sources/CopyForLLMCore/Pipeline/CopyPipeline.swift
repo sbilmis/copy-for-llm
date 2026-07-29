@@ -52,6 +52,11 @@ public struct CopyRequest: Sendable {
 public struct GeneratedOutput: Sendable {
     public var text: String
     public var report: RunReport
+
+    public init(text: String, report: RunReport) {
+        self.text = text
+        self.report = report
+    }
 }
 
 public enum CopyPipelineError: Error, LocalizedError {
