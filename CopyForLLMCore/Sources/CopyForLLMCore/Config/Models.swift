@@ -70,7 +70,7 @@ public struct Preset: Codable, Sendable, Identifiable, Hashable {
     ]
 }
 
-public struct AppSettings: Codable, Sendable {
+public struct AppSettings: Codable, Sendable, Equatable {
     public var defaultFormat: OutputFormat
     public var defaultPathMode: PathMode
     public var respectGitignore: Bool

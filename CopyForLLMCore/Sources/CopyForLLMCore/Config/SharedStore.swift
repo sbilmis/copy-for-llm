@@ -14,22 +14,18 @@ public struct SelectionHandoff: Codable, Sendable {
     }
 }
 
-/// JSON-file persistence in the App Group container, shared by the app and the
-/// sandboxed extensions. Falls back to Application Support (CLI, tests, dev builds
-/// without the group entitlement).
+/// JSON-file persistence shared by the app, the Quick Action extensions, and the CLI.
+///
+/// Direct distribution runs unsandboxed, so `~/Library/Application Support/CopyForLLM`
+/// is readable by every process. A future sandboxed (App Store) build would switch to
+/// an App Group container by passing its URL to `init(directory:)`.
 public struct SharedStore: Sendable {
-
-    public static let appGroupID = "group.com.selcukbilmis.copyforllm"
 
     public let directory: URL
 
     public init(directory: URL? = nil) {
         if let directory {
             self.directory = directory
-        } else if let group = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: Self.appGroupID
-        ) {
-            self.directory = group.appendingPathComponent("CopyForLLM", isDirectory: true)
         } else {
             let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             self.directory = support.appendingPathComponent("CopyForLLM", isDirectory: true)

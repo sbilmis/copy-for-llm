@@ -1,0 +1,48 @@
+name: CopyForLLM
+options:
+  bundleIdPrefix: com.selcukbilmis
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+
+packages:
+  CopyForLLMCore:
+    path: CopyForLLMCore
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    # Ad-hoc signing so contributors can build without a certificate; release
+    # builds override this with Developer ID (see Packaging/).
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "-"
+    DEVELOPMENT_TEAM: ""
+    CURRENT_PROJECT_VERSION: "1"
+    MARKETING_VERSION: "0.1.0"
+
+targets:
+  CopyForLLM:
+    type: application
+    platform: macOS
+    sources:
+      - App
+    dependencies:
+      - package: CopyForLLMCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.selcukbilmis.copyforllm
+        PRODUCT_NAME: Copy for LLM
+        ENABLE_HARDENED_RUNTIME: YES
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: Copy for LLM
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSApplicationCategoryType: public.app-category.developer-tools
+        NSHumanReadableCopyright: MIT License
+        CFBundleURLTypes:
+          - CFBundleURLName: com.selcukbilmis.copyforllm
+            CFBundleURLSchemes:
+              - copyforllm
