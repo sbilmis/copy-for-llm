@@ -67,6 +67,8 @@ targets:
     platform: macOS
     sources:
       - App
+      - path: Packaging/AppIcon.icns
+        buildPhase: resources
     dependencies:
       - package: CopyForLLMCore
       - target: CopyDefaultAction
@@ -88,6 +90,7 @@ targets:
         CFBundleDisplayName: Copy for LLM
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleIconFile: AppIcon
         LSApplicationCategoryType: public.app-category.developer-tools
         NSHumanReadableCopyright: MIT License
         CFBundleURLTypes:
