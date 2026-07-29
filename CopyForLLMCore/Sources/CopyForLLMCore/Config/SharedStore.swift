@@ -1,0 +1,87 @@
+import Foundation
+
+/// Selection passed from the Options… Quick Action to the main app.
+public struct SelectionHandoff: Codable, Sendable {
+    public var paths: [String]
+    /// Security-scoped bookmarks, stored so a future sandboxed build works unchanged.
+    public var bookmarks: [Data]
+    public var date: Date
+
+    public init(paths: [String], bookmarks: [Data] = [], date: Date = Date()) {
+        self.paths = paths
+        self.bookmarks = bookmarks
+        self.date = date
+    }
+}
+
+/// JSON-file persistence in the App Group container, shared by the app and the
+/// sandboxed extensions. Falls back to Application Support (CLI, tests, dev builds
+/// without the group entitlement).
+public struct SharedStore: Sendable {
+
+    public static let appGroupID = "group.com.selcukbilmis.copyforllm"
+
+    public let directory: URL
+
+    public init(directory: URL? = nil) {
+        if let directory {
+            self.directory = directory
+        } else if let group = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: Self.appGroupID
+        ) {
+            self.directory = group.appendingPathComponent("CopyForLLM", isDirectory: true)
+        } else {
+            let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            self.directory = support.appendingPathComponent("CopyForLLM", isDirectory: true)
+        }
+        try? FileManager.default.createDirectory(at: self.directory, withIntermediateDirectories: true)
+    }
+
+    private var settingsURL: URL { directory.appendingPathComponent("settings.json") }
+    private var handoffURL: URL { directory.appendingPathComponent("handoff.json") }
+    private var lastOutputURL: URL { directory.appendingPathComponent("last-output.txt") }
+
+    // MARK: Settings
+
+    public func loadSettings() -> AppSettings {
+        guard let data = try? Data(contentsOf: settingsURL),
+              let settings = try? JSONDecoder().decode(AppSettings.self, from: data) else {
+            return AppSettings()
+        }
+        return settings
+    }
+
+    public func saveSettings(_ settings: AppSettings) throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        try encoder.encode(settings).write(to: settingsURL, options: .atomic)
+    }
+
+    // MARK: Selection hand-off
+
+    public func writeHandoff(_ handoff: SelectionHandoff) throws {
+        try JSONEncoder().encode(handoff).write(to: handoffURL, options: .atomic)
+    }
+
+    /// Reads and consumes the pending hand-off. Stale hand-offs (>2 min) are discarded.
+    public func takeHandoff() -> SelectionHandoff? {
+        guard let data = try? Data(contentsOf: handoffURL),
+              let handoff = try? JSONDecoder().decode(SelectionHandoff.self, from: data) else {
+            return nil
+        }
+        try? FileManager.default.removeItem(at: handoffURL)
+        guard Date().timeIntervalSince(handoff.date) < 120 else { return nil }
+        return handoff
+    }
+
+    // MARK: Last output ("re-copy" without a full clipboard history)
+
+    public func saveLastOutput(_ text: String) throws {
+        try Data(text.utf8).write(to: lastOutputURL, options: .atomic)
+    }
+
+    public func loadLastOutput() -> String? {
+        guard let data = try? Data(contentsOf: lastOutputURL) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+}
