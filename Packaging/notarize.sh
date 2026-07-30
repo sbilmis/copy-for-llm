@@ -13,7 +13,20 @@ DMG="${1:?usage: notarize.sh <path-to-dmg>}"
 PROFILE="${NOTARY_PROFILE:-copyforllm}"
 
 echo "==> Submitting $DMG"
-xcrun notarytool submit "$DMG" --keychain-profile "$PROFILE" --wait
+# `notarytool submit` exits 0 when the *upload* succeeds, even if Apple then
+# rejects the archive — so check the reported status before stapling.
+LOG=$(mktemp)
+trap 'rm -f "$LOG"' EXIT
+xcrun notarytool submit "$DMG" --keychain-profile "$PROFILE" --wait 2>&1 | tee "$LOG"
+
+if ! grep -q "status: Accepted" "$LOG"; then
+    SUBMISSION_ID=$(awk '/^ *id: /{print $2; exit}' "$LOG")
+    echo >&2
+    echo "!! Notarization failed. Apple's log follows:" >&2
+    [[ -n "$SUBMISSION_ID" ]] && \
+        xcrun notarytool log "$SUBMISSION_ID" --keychain-profile "$PROFILE" >&2
+    exit 1
+fi
 
 echo "==> Stapling"
 xcrun stapler staple "$DMG"
