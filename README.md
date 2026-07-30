@@ -126,3 +126,8 @@ are the intended extension points.
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+## Contributing
+
+See [DEVELOPING.md](DEVELOPING.md) for the build loop, how to get the Quick
+Actions registered with Finder, and the release/notarization pipeline.

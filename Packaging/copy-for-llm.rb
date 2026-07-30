@@ -22,6 +22,6 @@ cask "copy-for-llm" do
 
   zap trash: [
     "~/Library/Application Support/CopyForLLM",
-    "~/Library/Preferences/com.selcukbilmis.copyforllm.plist",
+    "~/Library/Preferences/app.copyforllm.plist",
   ]
 end

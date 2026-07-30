@@ -24,7 +24,7 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.selcukbilmis.copyforllm</string>
+			<string>app.copyforllm</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>copyforllm</string>

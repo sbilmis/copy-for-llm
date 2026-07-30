@@ -1,6 +1,6 @@
 name: CopyForLLM
 options:
-  bundleIdPrefix: com.selcukbilmis
+  bundleIdPrefix: app
   deploymentTarget:
     macOS: "14.0"
   createIntermediateGroups: true
@@ -37,7 +37,7 @@ targetTemplates:
       - package: CopyForLLMCore
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.selcukbilmis.copyforllm.${bundleSuffix}
+        PRODUCT_BUNDLE_IDENTIFIER: app.copyforllm.${bundleSuffix}
     # pkd refuses to register unsandboxed app extensions. The temporary exception
     # gives the sandboxed extensions access to the shared settings directory —
     # fine for direct distribution; an App Store build would use an App Group.
@@ -92,7 +92,7 @@ targets:
         embed: true
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.selcukbilmis.copyforllm
+        PRODUCT_BUNDLE_IDENTIFIER: app.copyforllm
         PRODUCT_NAME: Copy for LLM
         ENABLE_HARDENED_RUNTIME: YES
     info:
@@ -108,7 +108,7 @@ targets:
         LSApplicationCategoryType: public.app-category.developer-tools
         NSHumanReadableCopyright: MIT License
         CFBundleURLTypes:
-          - CFBundleURLName: com.selcukbilmis.copyforllm
+          - CFBundleURLName: app.copyforllm
             CFBundleURLSchemes:
               - copyforllm
 
