@@ -1,5 +1,6 @@
 import AppKit
 import CopyForLLMCore
+import OSLog
 import UniformTypeIdentifiers
 import UserNotifications
 
@@ -44,20 +45,42 @@ enum QuickActionRunner {
         }
     }
 
+    static let log = Logger(subsystem: "app.copyforllm", category: "quickaction")
+
     static func fileURLs(from providers: [NSItemProvider]) async -> [URL] {
         var urls: [URL] = []
-        for provider in providers
-        where provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
-            let item = try? await provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier)
-            if let url = item as? URL {
+        for provider in providers {
+            log.debug("provider types: \(provider.registeredTypeIdentifiers.joined(separator: ", "))")
+            if let url = await fileURL(from: provider) {
                 urls.append(url)
-            } else if let data = item as? Data, let url = URL(dataRepresentation: data, relativeTo: nil) {
-                urls.append(url)
-            } else if let string = item as? String, let url = URL(string: string), url.isFileURL {
-                urls.append(url)
+            } else {
+                log.error("no file URL from provider \(provider.registeredTypeIdentifiers)")
             }
         }
         return urls
+    }
+
+    /// Finder registers each attachment under the file's own UTI (a `.md` file
+    /// arrives as `net.daringfireball.markdown`, not `public.file-url`), so
+    /// filtering on one identifier drops the whole selection. Try the URL types
+    /// first, then fall back to whatever the provider actually advertises.
+    private static func fileURL(from provider: NSItemProvider) async -> URL? {
+        var identifiers = [UTType.fileURL.identifier, UTType.url.identifier, UTType.item.identifier]
+        identifiers.append(contentsOf: provider.registeredTypeIdentifiers)
+
+        for identifier in identifiers {
+            guard let item = try? await provider.loadItem(forTypeIdentifier: identifier) else { continue }
+            if let url = item as? URL, url.isFileURL { return url }
+            if let data = item as? Data,
+               let url = URL(dataRepresentation: data, relativeTo: nil), url.isFileURL {
+                return url
+            }
+            if let string = item as? String,
+               let url = URL(string: string), url.isFileURL {
+                return url
+            }
+        }
+        return nil
     }
 
     static func perform(kind: QuickActionKind, urls: [URL]) async {
