@@ -25,6 +25,8 @@ jobs:
         run: xcodegen generate
       - name: Build
         run: |
+          # CODE_SIGNING_ALLOWED=NO is required as well: the extensions declare
+          # entitlements, and signing those fails on a runner with no identity.
           xcodebuild -project CopyForLLM.xcodeproj -scheme CopyForLLM \
             -configuration Release -derivedDataPath .build/DerivedData \
-            CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO build
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO build

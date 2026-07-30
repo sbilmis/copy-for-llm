@@ -27,6 +27,10 @@ final class AppModel {
         optionsRoots = handoff.paths.map { URL(fileURLWithPath: $0) }
     }
 
+    var hasLastOutput: Bool {
+        store.loadLastOutput() != nil
+    }
+
     @discardableResult
     func recopyLastOutput() -> Bool {
         guard let text = store.loadLastOutput() else { return false }

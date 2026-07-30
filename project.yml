@@ -57,17 +57,20 @@ targetTemplates:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:
           NSExtensionPointIdentifier: com.apple.services
-          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ActionRequestHandler
+          # Bare @objc name (see each target's ActionRequestHandler.swift) —
+          # module-qualified Swift names are an unreliable principal class.
+          NSExtensionPrincipalClass: CopyForLLM${dir}Handler
           NSExtensionAttributes:
-            # Without a role type the Services registry (pbs) ignores the
-            # extension entirely and it never appears in Quick Actions.
-            NSExtensionServiceRoleType: NSExtensionServiceRoleTypeEditor
+            # The action reads the selection and writes the clipboard; it does
+            # not return edited content, so it is a Viewer, not an Editor.
+            NSExtensionServiceRoleType: NSExtensionServiceRoleTypeViewer
             NSExtensionServiceAllowsFinderPreviewItem: true
+            # Every attachment in the selection must be a file or folder.
             NSExtensionActivationRule: >-
               SUBQUERY(extensionItems, $extensionItem,
               SUBQUERY($extensionItem.attachments, $attachment,
-              ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.item").@count > 0
-              ).@count > 0
+              ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.item").@count
+              == $extensionItem.attachments.@count).@count == 1
 
 targets:
   CopyForLLM:
@@ -99,6 +102,9 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleIconFile: AppIcon
+        # Menu-bar-only: no Dock icon, no ⌘-Tab entry. The MenuBarExtra in
+        # CopyForLLMApp.swift is the entry point for Options and Settings.
+        LSUIElement: true
         LSApplicationCategoryType: public.app-category.developer-tools
         NSHumanReadableCopyright: MIT License
         CFBundleURLTypes:
