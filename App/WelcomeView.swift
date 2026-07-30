@@ -38,6 +38,11 @@ struct WelcomeView: View {
                 } icon: {
                     Image(systemName: "3.circle.fill").foregroundStyle(.tint)
                 }
+                Label {
+                    Text("No Dock icon — Copy for LLM lives in the menu bar. Use the clipboard icon there for options, settings, or to pick files without Finder.")
+                } icon: {
+                    Image(systemName: "menubar.arrow.up.rectangle").foregroundStyle(.tint)
+                }
             }
             .labelStyle(.titleAndIcon)
 
@@ -59,13 +64,7 @@ struct WelcomeView: View {
     }
 
     private func chooseSelection() {
-        let panel = NSOpenPanel()
-        panel.canChooseDirectories = true
-        panel.canChooseFiles = true
-        panel.allowsMultipleSelection = true
-        panel.prompt = "Select"
-        guard panel.runModal() == .OK, !panel.urls.isEmpty else { return }
-        model.optionsRoots = panel.urls
+        guard model.chooseSelection() else { return }
         openWindow(id: "options")
     }
 }

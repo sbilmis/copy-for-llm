@@ -1,3 +1,4 @@
+import AppKit
 import CopyForLLMCore
 import Observation
 import SwiftUI
@@ -29,6 +30,22 @@ final class AppModel {
 
     var hasLastOutput: Bool {
         store.loadLastOutput() != nil
+    }
+
+    /// Shows the open panel and adopts the chosen items as the Options selection.
+    /// Returns false if the user cancelled.
+    @discardableResult
+    func chooseSelection() -> Bool {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = true
+        panel.allowsMultipleSelection = true
+        panel.prompt = "Select"
+        panel.message = "Choose files or a folder to prepare for an LLM."
+        NSApp.activate(ignoringOtherApps: true)
+        guard panel.runModal() == .OK, !panel.urls.isEmpty else { return false }
+        optionsRoots = panel.urls
+        return true
     }
 
     @discardableResult
