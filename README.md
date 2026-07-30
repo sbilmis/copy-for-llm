@@ -41,8 +41,22 @@ brew install --cask copy-for-llm
 | **Copy Paths** | Absolute, relative, or filename-only paths. |
 | **Copy for LLM (Options…)** | Opens the Options window: live preview, filters, formats, templates. |
 
-Each one can be given a keyboard shortcut in System Settings → Keyboard → Keyboard
-Shortcuts → Services.
+## Keyboard shortcuts
+
+Any of the four actions can be triggered from the keyboard instead of the context menu:
+
+1. **System Settings → Keyboard → Keyboard Shortcuts…**
+2. Pick **Services** in the sidebar, then expand **Files and Folders**
+3. Find **Copy for LLM**, click to the right of it, and press your combination
+   (`⌃⌥⌘C` is a good one — unclaimed by macOS and close to ⌘C)
+
+The shortcut applies while Finder is frontmost with something selected, which is
+exactly when you want it. macOS provides no way for an app to ship a default
+shortcut for a Quick Action, so this assignment is a one-time manual step.
+
+If the actions aren't listed there, launch the app once and confirm they're
+enabled under System Settings → General → Login Items & Extensions → Finder
+Quick Actions.
 
 ## Output formats
 
