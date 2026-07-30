@@ -10,12 +10,15 @@ enum QuickActionKind {
     case options
 }
 
-/// Shared no-UI Quick Action handler. Each extension target subclasses this
-/// as `ActionRequestHandler` and overrides `kind`.
-/// Stateless, hence the unchecked Sendable.
-class CopyActionHandler: NSObject, NSExtensionRequestHandling, @unchecked Sendable {
-
-    var kind: QuickActionKind { .copyDefault }
+/// Shared implementation behind all four Quick Actions.
+///
+/// This is deliberately *not* a base class for the extensions' principal
+/// objects: ShareKit requires `beginRequestWithExtensionContext:` to be
+/// declared on the principal class itself, and an inherited implementation
+/// leaves the extension context without a principal object at runtime. Each
+/// target's `ActionRequestHandler` therefore implements the method directly
+/// and forwards here.
+enum QuickActionRunner {
 
     /// Carries AppKit types that predate `Sendable` across the task boundary.
     /// `nonisolated(unsafe)` locals are not portable across Swift versions here,
@@ -24,19 +27,19 @@ class CopyActionHandler: NSObject, NSExtensionRequestHandling, @unchecked Sendab
         let value: T
     }
 
-    func beginRequest(with context: NSExtensionContext) {
+    static func begin(kind: QuickActionKind, context: NSExtensionContext) {
         let providers = Unchecked(value: context.inputItems
             .compactMap { $0 as? NSExtensionItem }
             .flatMap { $0.attachments ?? [] })
         let context = Unchecked(value: context)
 
         Task {
-            let urls = await Self.fileURLs(from: providers.value)
+            let urls = await fileURLs(from: providers.value)
             guard !urls.isEmpty else {
                 context.value.cancelRequest(withError: CocoaError(.userCancelled))
                 return
             }
-            await self.perform(urls: urls)
+            await perform(kind: kind, urls: urls)
             context.value.completeRequest(returningItems: nil)
         }
     }
@@ -57,7 +60,7 @@ class CopyActionHandler: NSObject, NSExtensionRequestHandling, @unchecked Sendab
         return urls
     }
 
-    func perform(urls: [URL]) async {
+    static func perform(kind: QuickActionKind, urls: [URL]) async {
         // Sandboxed extension: the provider URLs carry implicit security scope.
         let accessed = urls.filter { $0.startAccessingSecurityScopedResource() }
         defer { accessed.forEach { $0.stopAccessingSecurityScopedResource() } }

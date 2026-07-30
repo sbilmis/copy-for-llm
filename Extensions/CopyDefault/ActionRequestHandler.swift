@@ -1,8 +1,13 @@
 import Foundation
 
-// Exposed to Objective-C under a stable, module-independent name so the
-// extension's NSExtensionPrincipalClass can reference it directly.
+// The principal class must (a) carry a stable @objc name matching
+// NSExtensionPrincipalClass in project.yml, and (b) declare
+// beginRequestWithExtensionContext: itself — ShareKit does not accept an
+// inherited implementation. See Extensions/Shared/QuickActionRunner.swift.
 @objc(CopyForLLMCopyDefaultHandler)
-final class ActionRequestHandler: CopyActionHandler, @unchecked Sendable {
-    override var kind: QuickActionKind { .copyDefault }
+final class ActionRequestHandler: NSObject, NSExtensionRequestHandling, @unchecked Sendable {
+
+    @objc func beginRequest(with context: NSExtensionContext) {
+        QuickActionRunner.begin(kind: .copyDefault, context: context)
+    }
 }
