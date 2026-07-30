@@ -17,20 +17,27 @@ class CopyActionHandler: NSObject, NSExtensionRequestHandling, @unchecked Sendab
 
     var kind: QuickActionKind { .copyDefault }
 
-    func beginRequest(with context: NSExtensionContext) {
-        nonisolated(unsafe) let providers = context.inputItems
-            .compactMap { $0 as? NSExtensionItem }
-            .flatMap { $0.attachments ?? [] }
+    /// Carries AppKit types that predate `Sendable` across the task boundary.
+    /// `nonisolated(unsafe)` locals are not portable across Swift versions here,
+    /// so use an explicit box instead.
+    private struct Unchecked<T>: @unchecked Sendable {
+        let value: T
+    }
 
-        nonisolated(unsafe) let context = context
+    func beginRequest(with context: NSExtensionContext) {
+        let providers = Unchecked(value: context.inputItems
+            .compactMap { $0 as? NSExtensionItem }
+            .flatMap { $0.attachments ?? [] })
+        let context = Unchecked(value: context)
+
         Task {
-            let urls = await Self.fileURLs(from: providers)
+            let urls = await Self.fileURLs(from: providers.value)
             guard !urls.isEmpty else {
-                context.cancelRequest(withError: CocoaError(.userCancelled))
+                context.value.cancelRequest(withError: CocoaError(.userCancelled))
                 return
             }
             await self.perform(urls: urls)
-            context.completeRequest(returningItems: nil)
+            context.value.completeRequest(returningItems: nil)
         }
     }
 
