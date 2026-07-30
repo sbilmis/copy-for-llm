@@ -1,16 +1,13 @@
 # Copy for LLM
 
-Select files or folders in Finder, right-click, and get a clean, LLM-ready dump of your
-project on the clipboard — directory tree plus file contents, filtered and budgeted.
+Right-click a folder in Finder. Get your whole project on the clipboard, formatted
+for Claude, ChatGPT, or Gemini — directory tree, file contents, junk filtered out.
 
-Tools like [repomix](https://github.com/yamadashy/repomix) do this from a terminal.
-Copy for LLM does it from the Finder context menu, with no terminal, no config file,
-and no window to keep open.
+No terminal. No config file. No app window to keep open.
 
 ```text
 project/
 ├── README.md
-├── pyproject.toml
 ├── src/
 │   ├── main.py
 │   └── util.py
@@ -22,126 +19,67 @@ project/
 
 ## Install
 
-Download the latest `.dmg` from [Releases](../../releases), drag the app to
-`/Applications`, and **launch it once**. Then enable the Quick Actions in
-**System Settings → General → Login Items & Extensions → Finder Quick Actions**.
+1. Download the latest `.dmg` from [Releases](../../releases) and drag the app to
+   **Applications**
+2. **Launch it once** — this registers the right-click actions
+3. Turn them on in **System Settings → General → Login Items & Extensions →
+   Finder Quick Actions**
 
-Or with Homebrew:
+That third step is required, and it's easy to miss. Without it nothing appears in
+Finder.
 
-```bash
-brew install --cask copy-for-llm
-```
+## Use it
 
-## The four Quick Actions
+Select files or a folder in Finder, right-click, and open the
+**Quick Actions ▸** submenu:
 
-| Action | What it copies |
+| Action | What lands on your clipboard |
 | --- | --- |
-| **Copy for LLM** | Folders → tree + contents. Files → contents. Uses your saved defaults. |
-| **Copy Tree for LLM** | The directory tree only. |
-| **Copy Paths** | Absolute, relative, or filename-only paths. |
-| **Copy for LLM (Options…)** | Opens the Options window: live preview, filters, formats, templates. |
+| **Copy for LLM** | A folder → tree + every file's contents. Files → their contents. |
+| **Copy Tree for LLM** | Just the directory tree. |
+| **Copy Paths** | The file paths. |
+| **Copy for LLM (Options…)** | Opens a window to preview and tweak before copying. |
 
-## Keyboard shortcuts
+Then paste into your chat. A notification tells you what you got —
+*"Copied 47 files (~85k tokens)"* — so you know before you paste whether it fits.
 
-Any of the four actions can be triggered from the keyboard instead of the context menu:
+**Keyboard shortcut:** System Settings → Keyboard → Keyboard Shortcuts… →
+Services → Files and Folders → **Copy for LLM**. Click to the right of the name
+and press your combination (`⌃⌥⌘C` works well). macOS doesn't let apps ship a
+default, so this is a one-time setup.
 
-1. **System Settings → Keyboard → Keyboard Shortcuts…**
-2. Pick **Services** in the sidebar, then expand **Files and Folders**
-3. Find **Copy for LLM**, click to the right of it, and press your combination
-   (`⌃⌥⌘C` is a good one — unclaimed by macOS and close to ⌘C)
+**Menu bar icon:** Copy for LLM has no Dock icon. The clipboard icon in your menu
+bar opens Settings, the Options window, or a file picker if you'd rather not use
+Finder.
 
-The shortcut applies while Finder is frontmost with something selected, which is
-exactly when you want it. macOS provides no way for an app to ship a default
-shortcut for a Quick Action, so this assignment is a one-time manual step.
+## Junk is skipped automatically
 
-If the actions aren't listed there, launch the app once and confirm they're
-enabled under System Settings → General → Login Items & Extensions → Finder
-Quick Actions.
+`node_modules`, `venv`, `__pycache__`, build output, images, archives — and
+anything in your `.gitignore`. Credentials like `.env` and `*.pem` are never
+copied. Binary files are detected and skipped by content, not just extension.
 
-## Output formats
+All of it is editable in Settings, and you can add your own include/exclude
+patterns. Full details in the [User Guide](MANUAL.md).
 
-- **Markdown** (default) — `## path` headings with language-hinted code fences.
-- **XML** — `<file_tree>` and `<document path=…>` tags, following Claude prompt conventions.
-- **Plain** — `===== path =====` separators.
-- **JSON** — for API pipelines.
+## Too big to paste?
 
-## What gets skipped
+Defaults cap a copy at 1000 files / 4M characters / 10 MB. Hit a limit and you
+still get output — the skipped files are listed at the end and the notification
+says it was truncated. Use **Options…** to filter down and watch the token
+estimate update live.
 
-Rules are evaluated in this order, and **the first one that matches wins**:
+## Documentation
 
-1. **Your exclude globs** — always win. Nothing overrides an exclude.
-2. **Your include globs** — when set, only matching files are copied, and a match
-   overrides every rule below.
-3. **`.llmignore`** — same syntax as `.gitignore`, for LLM-specific exclusions.
-4. **`.gitignore`** — respected by default, including nested files and `!` negations.
-5. **Built-in defaults** — `node_modules/`, `venv/`, `__pycache__/`, build output,
-   images, archives, and credentials (`.env`, `*.pem`, `id_rsa*`). Fully editable
-   in Settings.
-
-Beyond the rules, binary files are detected and skipped by content (not just by
-extension), symlinks are never followed, and text is decoded via BOM detection →
-UTF-8 → Latin-1.
-
-Files you select **directly** bypass the ignore rules — if you explicitly right-click
-`debug.log`, you meant it.
-
-## Size limits
-
-Defaults are 1000 files, 4M characters, 10 MB total, 1 MB per file. When a limit is
-hit you still get output, the omitted files are listed at the end, and the
-notification tells you it was truncated. All four limits are configurable, and the
-Options window shows a live token estimate so you know what you're pasting.
-
-## Building from source
-
-Requires Xcode 16+ and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
-
-```bash
-make bootstrap   # installs XcodeGen, generates CopyForLLM.xcodeproj
-make test        # runs the CopyForLLMCore unit tests
-make install     # builds and installs to /Applications
-```
-
-`CopyForLLM.xcodeproj` is generated and git-ignored — edit
-[`project.yml`](project.yml) instead and re-run `make generate`.
-
-There is also a CLI harness over the same engine:
-
-```bash
-cd CopyForLLMCore && swift run llmcopy ~/some/project --format xml --report
-```
-
-## Architecture
-
-All logic lives in `CopyForLLMCore`, a dependency-free Swift package:
-
-```
-Scanning/   FileScanner — walks roots, applies rules, builds the tree
-Ignore/     GlobMatcher, GitignoreParser, IgnoreEngine (layered, per-directory)
-Content/    EncodingDetector, LanguageMap
-Format/     TreeRenderer + Plain/Markdown/XML/JSON formatters
-Budget/     Limits, BudgetEnforcer, TokenEstimator
-Pipeline/   CopyPipeline — scan → budget → decode → format
-Config/     AppSettings, Preset, Template, SharedStore
-```
-
-The app, the four Quick Action extensions, and the CLI are all thin frontends over
-`CopyPipeline.run(_:)`. Adding a Raycast script, an Alfred workflow, or a real
-tokenizer means writing a new frontend or swapping one protocol implementation —
-not touching the engine.
+- **[User Guide](MANUAL.md)** — output formats, filters, presets, prompt
+  templates, troubleshooting
+- **[DEVELOPING.md](DEVELOPING.md)** — building from source, architecture,
+  release process
 
 ## Roadmap
 
-PDF and Office text extraction, git-diff mode ("copy changed files only"), real
-tokenizer-based counts, automatic chunking, archive support, and a standalone CLI
-release. The `TokenEstimating` protocol and the pipeline's content-extraction seam
-are the intended extension points.
+Next up: **OCR for images and PDFs**, so a screenshot or a scanned paper becomes
+text on your clipboard instead of an unusable blob. Then git-diff mode ("copy
+only what changed"), exact tokenizer counts, and archive support. See
+[ROADMAP.md](ROADMAP.md).
 
-## License
-
-MIT — see [LICENSE](LICENSE).
-
-## Contributing
-
-See [DEVELOPING.md](DEVELOPING.md) for the build loop, how to get the Quick
-Actions registered with Finder, and the release/notarization pipeline.
+Requires macOS 14 or later. MIT licensed — see [LICENSE](LICENSE).
