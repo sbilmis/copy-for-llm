@@ -4,10 +4,10 @@ cask "copy-for-llm" do
   version "0.1.0"
   sha256 "REPLACE_WITH_SHA256_FROM_make-dmg.sh"
 
-  url "https://github.com/OWNER/copy-for-llm/releases/download/v#{version}/CopyForLLM-#{version}.dmg"
+  url "https://github.com/sbilmis/copy-for-llm/releases/download/v#{version}/CopyForLLM-#{version}.dmg"
   name "Copy for LLM"
   desc "Finder Quick Actions that copy project context for LLMs"
-  homepage "https://github.com/OWNER/copy-for-llm"
+  homepage "https://github.com/sbilmis/copy-for-llm"
 
   depends_on macos: ">= :sonoma"
 

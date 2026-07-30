@@ -12,6 +12,8 @@ cd "$(dirname "$0")/.."
 APP_NAME="Copy for LLM"
 DERIVED=".build/DerivedData"
 STAGING=".build/dmg-staging"
+# Override when building under a different Apple Developer team.
+TEAM_ID="${TEAM_ID:-38X62GQ8HC}"
 VERSION=$(awk -F'"' '/MARKETING_VERSION:/ {print $2; exit}' project.yml)
 VERSION="${VERSION:-0.1.0}"
 OUTPUT="Packaging/build/CopyForLLM-${VERSION}.dmg"
@@ -23,7 +25,7 @@ echo "==> Building Release"
 if [[ -n "${DEVELOPER_ID:-}" ]]; then
     xcodebuild -project CopyForLLM.xcodeproj -scheme CopyForLLM \
         -configuration Release -derivedDataPath "$DERIVED" \
-        CODE_SIGN_IDENTITY="$DEVELOPER_ID" \
+        CODE_SIGN_IDENTITY="$DEVELOPER_ID" DEVELOPMENT_TEAM="$TEAM_ID" \
         OTHER_CODE_SIGN_FLAGS="--timestamp --options=runtime" build
 else
     echo "    (no DEVELOPER_ID set — ad-hoc signing)"
