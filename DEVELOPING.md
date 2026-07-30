@@ -73,6 +73,29 @@ In Finder the actions live **inside the "Quick Actions ▸" submenu**, not at th
 top level of the context menu. The user-facing toggle is System Settings →
 General → Login Items & Extensions → Finder Quick Actions.
 
+### Duplicate actions in the menu
+
+If each action appears **twice** in Finder or in System Settings, a stale copy is
+registered from somewhere other than `/Applications` — almost always the build
+products in `.build/DerivedData/`, because `xcodebuild` runs
+`RegisterWithLaunchServices` on whatever it builds. A Debug build and an
+installed Release build therefore register two sets.
+
+List every registration with its path and remove the ones you don't want:
+
+```bash
+pluginkit -m -v -p com.apple.services | grep copyforllm | awk -F'\t' '{print $NF}'
+
+pluginkit -m -v -p com.apple.services | grep copyforllm \
+  | awk -F'\t' '{print $NF}' | grep -v '^/Applications' \
+  | while IFS= read -r p; do pluginkit -r "$p"; done
+```
+
+`pluginkit -e ignore` only *hides* an entry — it still appears in System Settings
+and can be switched back on. Use `-r` to actually unregister, and delete the
+stale bundle so it isn't rediscovered. `make clean` removes DerivedData for this
+reason.
+
 ### After changing the bundle ID
 
 Old identifiers linger in pkd and stay enabled while pointing at a deleted

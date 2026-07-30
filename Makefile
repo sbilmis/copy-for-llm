@@ -22,7 +22,12 @@ install: build
 	ditto "$(APP)" "/Applications/Copy for LLM.app"
 	@echo "Installed. Enable the Quick Actions in System Settings → General → Login Items & Extensions."
 
+# Unregister any extensions still pointing into DerivedData before deleting it,
+# otherwise they linger in Finder as duplicate Quick Actions.
 clean:
+	-pluginkit -m -v -p com.apple.services 2>/dev/null | grep copyforllm \
+		| awk -F'\t' '{print $$NF}' | grep -v '^/Applications' \
+		| while IFS= read -r p; do pluginkit -r "$$p"; done
 	rm -rf .build CopyForLLM.xcodeproj
 	cd CopyForLLMCore && swift package clean
 
