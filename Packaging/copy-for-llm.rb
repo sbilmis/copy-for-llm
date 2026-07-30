@@ -4,7 +4,7 @@ cask "copy-for-llm" do
   version "0.1.0"
   # Hash of the *stapled* DMG — stapling rewrites the file, so compute this
   # after Packaging/notarize.sh, not from make-dmg.sh's output.
-  sha256 "2d7c057650894204b0b4d00ca2e8c800b078d55d1a222fbf93425789ab2f851c"
+  sha256 "925a616cfe650351a148e7a29016e310b9c8038a3225dfeeddad740058b336d5"
 
   url "https://github.com/sbilmis/copy-for-llm/releases/download/v#{version}/CopyForLLM-#{version}.dmg"
   name "Copy for LLM"
