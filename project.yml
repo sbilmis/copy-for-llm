@@ -59,6 +59,9 @@ targetTemplates:
           NSExtensionPointIdentifier: com.apple.services
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ActionRequestHandler
           NSExtensionAttributes:
+            # Without a role type the Services registry (pbs) ignores the
+            # extension entirely and it never appears in Quick Actions.
+            NSExtensionServiceRoleType: NSExtensionServiceRoleTypeEditor
             NSExtensionServiceAllowsFinderPreviewItem: true
             NSExtensionActivationRule: >-
               SUBQUERY(extensionItems, $extensionItem,
