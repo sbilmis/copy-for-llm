@@ -21,7 +21,8 @@ struct OptionsView: View {
             statsBar
         }
         .padding(16)
-        .frame(minWidth: 680, minHeight: 520)
+        // Wide enough that the four pickers sit on one row without clipping.
+        .frame(minWidth: 900, minHeight: 540)
         .onAppear {
             model.consumeHandoff()
             session.adopt(settings: model.settings)
@@ -95,12 +96,7 @@ struct OptionsView: View {
             }
             .fixedSize()
 
-            Spacer()
-
-            Button("Save as Preset…") {
-                newPresetName = ""
-                showingSavePreset = true
-            }
+            Spacer(minLength: 0)
         }
     }
 
@@ -110,7 +106,7 @@ struct OptionsView: View {
                 .frame(maxWidth: 220)
             TextField("Exclude:", text: $session.excludeGlobs, prompt: Text("tests/ *.lock"))
                 .frame(maxWidth: 220)
-            Spacer()
+            Spacer(minLength: 0)
             Button {
                 OutputTextView.showFindBar()
             } label: {
@@ -118,6 +114,10 @@ struct OptionsView: View {
             }
             .keyboardShortcut("f", modifiers: .command)
             .help("Search within the generated output (⌘F)")
+            Button("Save as Preset…") {
+                newPresetName = ""
+                showingSavePreset = true
+            }
         }
         .textFieldStyle(.roundedBorder)
     }

@@ -17,6 +17,12 @@ project/
 
 …followed by the contents of every file, in the format your model likes best.
 
+Need more control? **Copy for LLM (Options…)** previews the output first, with
+filters and a live token count:
+
+![The Options window: a live preview of the generated output, with format and
+filter controls and a running file, token and character count](docs/images/options-window.png)
+
 ## Install
 
 1. Download the latest `.dmg` from [Releases](../../releases) and drag the app to
@@ -50,7 +56,10 @@ default, so this is a one-time setup.
 
 **Menu bar icon:** Copy for LLM has no Dock icon. The clipboard icon in your menu
 bar opens Settings, the Options window, or a file picker if you'd rather not use
-Finder.
+Finder. Opening the app itself brings up this window:
+
+![The Getting Started window, explaining the three setup steps and offering a
+Choose Files or Folder button](docs/images/getting-started.png)
 
 ## PDFs, slides and screenshots become text
 
