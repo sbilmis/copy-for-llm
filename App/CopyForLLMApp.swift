@@ -66,8 +66,13 @@ struct CopyForLLMApp: App {
             Button("Re-copy Last Output") { model.recopyLastOutput() }
                 .disabled(!model.hasLastOutput)
             Divider()
-            Button("Settings…") { openSettings() }
-                .keyboardShortcut(",")
+            // SettingsLink, not NSApp.sendAction(showSettingsWindow:) — the latter
+            // walks the responder chain, and an LSUIElement app has no main menu
+            // for it to reach, so the Settings window never opened.
+            SettingsLink {
+                Text("Settings…")
+            }
+            .keyboardShortcut(",")
             Button("Getting Started") { openWelcome() }
             Divider()
             Button("Quit") { NSApp.terminate(nil) }
@@ -116,8 +121,4 @@ struct CopyForLLMApp: App {
         openWindow(id: "options")
     }
 
-    private func openSettings() {
-        NSApp.activate(ignoringOtherApps: true)
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-    }
 }

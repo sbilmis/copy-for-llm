@@ -71,6 +71,9 @@ All of it runs on your Mac — Apple's Vision framework for OCR, a native parser
 for Office files. Nothing is uploaded, no API key is needed, and it works
 offline. Extracted text also costs a fraction of the tokens an image does.
 
+![The Documents settings tab, with switches for PDF extraction, OCR of scanned
+pages, Office documents, and a picker controlling when images are read](docs/images/settings-documents.png)
+
 ## Junk is skipped automatically
 
 `node_modules`, `venv`, `__pycache__`, build output, images, archives — and

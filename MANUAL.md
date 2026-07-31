@@ -144,6 +144,14 @@ the top level of the right-click menu.
 `/Applications` and another elsewhere, such as a build folder or Downloads.
 Delete the one you don't want.
 
+**The menu bar icon is missing.** macOS gives the menu bar a fixed amount of
+room, and when it runs out it pushes the newest icons off-screen without
+warning — more likely on a laptop with a notch. ⌘-drag your menu bar icons to
+reorder them, hide a few built-in ones under System Settings → Control Center,
+or use a menu bar manager such as Ice or Bartender. Copy for LLM still works
+without it: the Finder right-click actions are unaffected, and opening the app
+brings up its window.
+
 **Nothing was copied.** If everything you selected was binary, ignored, or
 empty, you'll get a notification saying so rather than a silent failure.
 

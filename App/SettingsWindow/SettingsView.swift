@@ -21,6 +21,9 @@ struct SettingsView: View {
             PresetsTab(settings: $model.settings)
                 .tabItem { Label("Presets", systemImage: "star") }
         }
+        // Grouped is the standard macOS settings look, and it top-aligns the rows
+        // instead of floating them in the middle of the window.
+        .formStyle(.grouped)
         .frame(width: 640, height: 480)
         .onChange(of: model.settings) { model.save() }
     }
