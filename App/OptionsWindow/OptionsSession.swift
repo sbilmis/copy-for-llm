@@ -79,7 +79,8 @@ final class OptionsSession {
             template: settings.template(id: templateID)?.text,
             ignore: ignore, limits: limits,
             extraTextExtensions: Set(settings.extraTextExtensions),
-            charsPerToken: settings.charsPerToken
+            charsPerToken: settings.charsPerToken,
+            extraction: settings.extraction
         )
     }
 

@@ -56,6 +56,7 @@ public enum SkipReason: String, Sendable, Codable {
     case defaultRule = "default ignore rule"
     case binary = "binary content"
     case undecodable = "undecodable text"
+    case noTextExtracted = "no text found"
     case symlink = "symbolic link"
     case tooLarge = "exceeds per-file size limit"
     case budget = "output size limit reached"

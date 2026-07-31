@@ -25,6 +25,7 @@ public struct CopyRequest: Sendable {
     public var limits: Limits
     public var extraTextExtensions: Set<String>
     public var charsPerToken: Double
+    public var extraction: ExtractionSettings
 
     public init(
         roots: [URL],
@@ -35,8 +36,10 @@ public struct CopyRequest: Sendable {
         ignore: IgnoreConfiguration = IgnoreConfiguration(),
         limits: Limits = .standard,
         extraTextExtensions: Set<String> = [],
-        charsPerToken: Double = 4
+        charsPerToken: Double = 4,
+        extraction: ExtractionSettings = .disabled
     ) {
+        self.extraction = extraction
         self.roots = roots
         self.mode = mode
         self.format = format
@@ -92,7 +95,8 @@ public enum CopyPipeline {
         let options = ScanOptions(
             ignore: request.ignore,
             maxFileBytes: request.limits.maxFileBytes,
-            extraTextExtensions: request.extraTextExtensions
+            extraTextExtensions: request.extraTextExtensions,
+            extraction: request.extraction
         )
         let outcome = try FileScanner.scan(roots: request.roots, options: options, progress: progress)
 
@@ -108,23 +112,29 @@ public enum CopyPipeline {
             var totalChars = 0
             for file in selection.selected {
                 try Task.checkCancellation()
-                guard let data = try? Data(contentsOf: file.url) else {
-                    decodeSkipped.append(SkippedItem(displayPath: file.displayPath, reason: .unreadable))
+                let content: String
+                do {
+                    content = try await RichExtractor.extract(
+                        url: file.url, kind: file.extraction, settings: request.extraction
+                    )
+                } catch ExtractionError.noTextFound {
+                    decodeSkipped.append(
+                        SkippedItem(displayPath: file.displayPath, reason: .noTextExtracted))
+                    continue
+                } catch {
+                    decodeSkipped.append(
+                        SkippedItem(displayPath: file.displayPath,
+                                    reason: file.extraction == .plainText ? .binary : .unreadable))
                     continue
                 }
-                switch EncodingDetector.decode(data) {
-                case .binary:
-                    decodeSkipped.append(SkippedItem(displayPath: file.displayPath, reason: .binary))
-                case .text(let content, _):
-                    if let maxChars = request.limits.maxTotalChars, totalChars + content.count > maxChars {
-                        omitted.append(file.displayPath)
-                        continue
-                    }
-                    totalChars += content.count
-                    renderFiles.append(RenderFile(
-                        displayPath: file.displayPath, language: file.language, content: content
-                    ))
+                if let maxChars = request.limits.maxTotalChars, totalChars + content.count > maxChars {
+                    omitted.append(file.displayPath)
+                    continue
                 }
+                totalChars += content.count
+                renderFiles.append(RenderFile(
+                    displayPath: file.displayPath, language: file.language, content: content
+                ))
             }
         }
 

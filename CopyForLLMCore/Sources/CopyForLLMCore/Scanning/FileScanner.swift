@@ -4,15 +4,18 @@ public struct ScanOptions: Sendable {
     public var ignore: IgnoreConfiguration
     public var maxFileBytes: Int64?
     public var extraTextExtensions: Set<String>
+    public var extraction: ExtractionSettings
 
     public init(
         ignore: IgnoreConfiguration = IgnoreConfiguration(),
         maxFileBytes: Int64? = Limits.standard.maxFileBytes,
-        extraTextExtensions: Set<String> = []
+        extraTextExtensions: Set<String> = [],
+        extraction: ExtractionSettings = .disabled
     ) {
         self.ignore = ignore
         self.maxFileBytes = maxFileBytes
         self.extraTextExtensions = extraTextExtensions
+        self.extraction = extraction
     }
 }
 
@@ -54,7 +57,8 @@ public enum FileScanner {
             } else {
                 // Explicitly selected file.
                 if let file = state.admitFile(url: root, displayPath: name,
-                                              size: Int64(values.fileSize ?? 0)) {
+                                              size: Int64(values.fileSize ?? 0),
+                                              directlySelected: true) {
                     state.trees.append(FileNode(name: name, isDirectory: false))
                     state.files.append(file)
                 }
@@ -99,9 +103,17 @@ public enum FileScanner {
             }
             let isDir = values.isDirectory == true
 
-            if case .exclude = engine.decision(components: comps, isDirectory: isDir) {
-                state.ignoredCount += 1
-                continue
+            if case .exclude(let reason) = engine.decision(components: comps, isDirectory: isDir) {
+                // The built-in defaults exclude *.pdf, *.png and friends. When the
+                // user has switched extraction on for those, the default rule must
+                // yield — but their own excludes and .gitignore still win.
+                let extractable = !isDir && ExtractionPlanner.kind(
+                    forFileName: name, settings: state.options.extraction, directlySelected: false
+                ) != nil
+                guard reason == .defaultRule, extractable else {
+                    state.ignoredCount += 1
+                    continue
+                }
             }
 
             if isDir {
@@ -157,12 +169,32 @@ public enum FileScanner {
         }
 
         /// Size cap + text detection. Returns nil (and records the skip) if rejected.
-        mutating func admitFile(url: URL, displayPath: String, size: Int64) -> ScannedFile? {
+        mutating func admitFile(
+            url: URL, displayPath: String, size: Int64, directlySelected: Bool = false
+        ) -> ScannedFile? {
+            let name = url.lastPathComponent
+
+            // PDFs, images and Word documents are binary, so they must be matched
+            // before the text checks below would reject them — and they get their
+            // own, larger size cap.
+            if let kind = ExtractionPlanner.kind(
+                forFileName: name, settings: options.extraction, directlySelected: directlySelected
+            ) {
+                if let cap = options.extraction.maxSourceBytes, size > cap {
+                    skip(displayPath, .tooLarge)
+                    return nil
+                }
+                return ScannedFile(
+                    url: url, displayPath: displayPath, sizeBytes: size,
+                    language: "", extraction: kind
+                )
+            }
+
             if let cap = options.maxFileBytes, size > cap {
                 skip(displayPath, .tooLarge)
                 return nil
             }
-            let name = url.lastPathComponent
+
             if !LanguageMap.isKnownText(fileName: name, extraExtensions: options.extraTextExtensions) {
                 guard let handle = try? FileHandle(forReadingFrom: url) else {
                     skip(displayPath, .unreadable)

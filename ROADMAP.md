@@ -3,29 +3,37 @@
 Ordered by priority. Everything here is a frontend or a plug-in point over
 `CopyForLLMCore` — see [DEVELOPING.md](DEVELOPING.md) for the architecture.
 
+## Done
+
+### OCR and PDF text extraction ✅
+
+Shipped. PDFs (text layer, with Vision OCR for scanned pages), images, and
+Word/RTF/OpenDocument files are extracted to text via PDFKit, Vision and
+`NSAttributedString` — all on-device, no dependencies, no API keys. Configurable
+in Settings → Documents.
+
+Deliberately **not** built on [MarkItDown](https://github.com/microsoft/markitdown):
+it performs no local OCR (images need an LLM client or the `markitdown-ocr`
+plugin, which calls an LLM Vision API), scanned PDFs need Azure Document
+Intelligence, and it's a Python package — which the sandboxed Quick Action
+extensions cannot invoke at all. Apple's Vision is better for this job and keeps
+the "nothing leaves your Mac" promise.
+
 ## Next
 
-### 1. OCR and PDF text extraction
+### 1. PowerPoint and Excel
 
-Right-click a screenshot or a PDF and get its **text** on the clipboard instead
-of a binary file that's currently skipped outright. This is the priority
-feature: it turns "unusable blob" into usable context, and text costs a fraction
-of the tokens an image does when pasted into a multimodal model.
+The one real gap left. `.pptx` / `.xlsx` / `.epub` have no native macOS text
+extraction. Options, in preference order:
 
-- Images (`.png`, `.jpg`, `.heic`, …) via Vision's `VNRecognizeTextRequest`
-- PDFs via PDFKit, falling back to Vision for scanned pages with no text layer
-- Mixed selections should work — OCR the images, read the code, one clipboard
+- **Pandoc** — a single self-contained Homebrew binary, no Python environment.
+  Shell out when present, degrade gracefully when absent.
+- **MarkItDown** — wider format list, but needs Python plus `pip install`.
+- **Native ZIP+XML parsing** — both are zipped XML; no dependency, but real work
+  and ongoing maintenance.
 
-Design note: the pipeline already has the seam for this. `FileScanner` currently
-rejects these by extension and by binary sniffing, and `CopyPipeline` reads
-files with `Data(contentsOf:)` + `EncodingDetector`. Introduce a
-`ContentExtractor` protocol with a plain-text default, and register OCR/PDF
-extractors for the relevant UTIs. The formatters and budget layer need no
-changes.
-
-Open questions: OCR is slow enough to need progress reporting and a per-file
-timeout; the Quick Action's memory ceiling may push large PDFs to the Options
-window path; and OCR quality should probably be a setting (fast vs. accurate).
+Either external tool can only run from the **main app**, never the sandboxed
+Quick Actions, so this belongs on the Options window path.
 
 ### 2. First-run extension check
 

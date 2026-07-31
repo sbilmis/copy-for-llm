@@ -12,6 +12,8 @@ struct SettingsView: View {
                 .tabItem { Label("General", systemImage: "gearshape") }
             IgnoreTab(settings: $model.settings)
                 .tabItem { Label("Ignore Rules", systemImage: "eye.slash") }
+            ExtractionTab(settings: $model.settings)
+                .tabItem { Label("Documents", systemImage: "doc.viewfinder") }
             LimitsTab(settings: $model.settings)
                 .tabItem { Label("Limits", systemImage: "gauge.with.needle") }
             TemplatesTab(settings: $model.settings)
@@ -83,6 +85,49 @@ private struct IgnoreTab: View {
                     settings.ignoreRules = DefaultIgnoreRules.standard
                 }
             }
+        }
+        .padding(20)
+    }
+}
+
+// MARK: - Documents, PDFs and images
+
+private struct ExtractionTab: View {
+    @Binding var settings: AppSettings
+
+    var body: some View {
+        Form {
+            Section {
+                Toggle("Extract text from PDFs", isOn: $settings.extraction.pdf)
+                Toggle("Read scanned PDF pages with OCR", isOn: $settings.extraction.ocrScannedPDFs)
+                    .disabled(!settings.extraction.pdf)
+                    .padding(.leading, 18)
+                Toggle("Extract text from Word, RTF and OpenDocument files",
+                       isOn: $settings.extraction.richDocuments)
+            }
+
+            Section {
+                Picker("Read text in images:", selection: $settings.extraction.ocr) {
+                    ForEach(OCRMode.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                }
+                Picker("OCR quality:", selection: $settings.extraction.accurateOCR) {
+                    Text("Accurate").tag(true)
+                    Text("Fast").tag(false)
+                }
+                .disabled(settings.extraction.ocr == .off && !settings.extraction.ocrScannedPDFs)
+            }
+
+            Text("""
+                 Recognition runs entirely on your Mac using Apple's Vision framework — \
+                 nothing is uploaded and no API key is needed. Accurate is slower but \
+                 handles photos and awkward layouts; Fast suits screenshots of text.
+
+                 “Only files I select directly” keeps folder copies quick: images inside \
+                 a folder are skipped, but an image you right-click is read.
+                 """)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(20)
     }

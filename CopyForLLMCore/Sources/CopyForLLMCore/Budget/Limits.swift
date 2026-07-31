@@ -49,12 +49,17 @@ public enum BudgetEnforcer {
                 hitLimit = true
                 continue
             }
-            if let maxBytes = limits.maxTotalBytes, totalBytes + file.sizeBytes > maxBytes {
-                omitted.append(file)
-                hitLimit = true
-                continue
+            // Only plain text is budgeted by source size. For an extracted file the
+            // bytes on disk say nothing about how much text comes out — a 20 MB
+            // scanned PDF may yield a page — so the character budget governs those.
+            if file.extraction == .plainText {
+                if let maxBytes = limits.maxTotalBytes, totalBytes + file.sizeBytes > maxBytes {
+                    omitted.append(file)
+                    hitLimit = true
+                    continue
+                }
+                totalBytes += file.sizeBytes
             }
-            totalBytes += file.sizeBytes
             selected.append(file)
         }
         return Selection(selected: selected, omitted: omitted, hitLimit: hitLimit)

@@ -21,12 +21,18 @@ public struct ScannedFile: Sendable {
     public let displayPath: String
     public let sizeBytes: Int64
     public let language: String
+    /// How this file's text should be obtained.
+    public let extraction: ExtractionKind
 
-    public init(url: URL, displayPath: String, sizeBytes: Int64, language: String) {
+    public init(
+        url: URL, displayPath: String, sizeBytes: Int64, language: String,
+        extraction: ExtractionKind = .plainText
+    ) {
         self.url = url
         self.displayPath = displayPath
         self.sizeBytes = sizeBytes
         self.language = language
+        self.extraction = extraction
     }
 }
 

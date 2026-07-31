@@ -80,6 +80,7 @@ public struct AppSettings: Codable, Sendable, Equatable {
     public var extraTextExtensions: [String]
     public var charsPerToken: Double
     public var showNotification: Bool
+    public var extraction: ExtractionSettings
     public var templates: [Template]
     public var presets: [Preset]
     public var defaultTemplateID: UUID?
@@ -95,6 +96,7 @@ public struct AppSettings: Codable, Sendable, Equatable {
         extraTextExtensions = []
         charsPerToken = 4
         showNotification = true
+        extraction = ExtractionSettings()
         templates = Template.builtIns
         presets = Preset.builtIns
         defaultTemplateID = nil
@@ -114,6 +116,7 @@ public struct AppSettings: Codable, Sendable, Equatable {
         extraTextExtensions = (try? c.decode([String].self, forKey: .extraTextExtensions)) ?? d.extraTextExtensions
         charsPerToken = (try? c.decode(Double.self, forKey: .charsPerToken)) ?? d.charsPerToken
         showNotification = (try? c.decode(Bool.self, forKey: .showNotification)) ?? d.showNotification
+        extraction = (try? c.decode(ExtractionSettings.self, forKey: .extraction)) ?? d.extraction
         templates = (try? c.decode([Template].self, forKey: .templates)) ?? d.templates
         presets = (try? c.decode([Preset].self, forKey: .presets)) ?? d.presets
         defaultTemplateID = try? c.decode(UUID.self, forKey: .defaultTemplateID)
@@ -153,7 +156,7 @@ public struct AppSettings: Codable, Sendable, Equatable {
             roots: roots, mode: effectiveMode, format: format, pathMode: defaultPathMode,
             template: template, ignore: ignore, limits: limits,
             extraTextExtensions: Set(extraTextExtensions.map { $0.lowercased() }),
-            charsPerToken: charsPerToken
+            charsPerToken: charsPerToken, extraction: extraction
         )
     }
 }

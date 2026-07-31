@@ -69,6 +69,31 @@ specifically, you meant it.
 Patterns use `.gitignore` syntax: `*.log`, `build/`, `docs/*.md`, `**/temp`,
 `!keep.log`.
 
+## PDFs, images and Word documents
+
+By default these are skipped as binary. Turn extraction on in
+**Settings → Documents** and their text is copied like any source file:
+
+- **PDFs** — the text layer, page by page. Scanned pages with no text layer are
+  read with OCR.
+- **Images** (`.png`, `.jpg`, `.heic`, …) — text read out of the picture, so a
+  screenshot of an error message becomes text you can paste.
+- **Word, RTF, OpenDocument** — the document's text.
+
+**Images are handled carefully by default.** "Only files I select directly"
+means an image you right-click is read, but images found while walking a folder
+are skipped — otherwise copying a project with an assets directory would be slow
+and mostly noise. Switch to "Always" if you want everything read.
+
+**OCR quality**: Accurate is slower and handles photos and awkward layouts; Fast
+suits clean screenshots of text.
+
+All recognition runs on your Mac using Apple's Vision framework. Nothing is
+uploaded, no API key is needed, and it works offline. Extracted text also costs
+far fewer tokens than pasting the image into a multimodal model.
+
+PowerPoint and Excel aren't supported yet — see [ROADMAP.md](ROADMAP.md).
+
 ## Presets
 
 A preset saves mode, format, filters, limits, and template under one name. Four

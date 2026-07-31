@@ -19,6 +19,9 @@ struct LLMCopyCLI {
       --no-gitignore                       don't respect .gitignore
       --max-files <n> | --max-chars <n> | --max-mb <n>
       --template <text>                    prepended instructions
+      --extract                            read PDFs, Word docs, and selected images
+      --ocr-all                            also OCR images found inside folders
+      --no-extract                         plain text only (default)
       --copy                               write to clipboard instead of stdout
       --report                             print run report to stderr
     """
@@ -67,6 +70,9 @@ struct LLMCopyCLI {
                 guard let mb = Double(next(arg)) else { fail("bad --max-mb") }
                 request.limits.maxTotalBytes = Int64(mb * 1_000_000)
             case "--template": request.template = next(arg)
+            case "--extract": request.extraction = ExtractionSettings()
+            case "--ocr-all": request.extraction = ExtractionSettings(ocr: .always)
+            case "--no-extract": request.extraction = .disabled
             case "--copy": copyToClipboard = true
             case "--report": showReport = true
             case "-h", "--help":
@@ -84,7 +90,7 @@ struct LLMCopyCLI {
         do {
             let output = try await CopyPipeline.run(request)
             if copyToClipboard {
-                await ClipboardWriter.write(output.text)
+                await MainActor.run { ClipboardWriter.write(output.text) }
                 FileHandle.standardError.write(Data((output.report.summaryLine + "\n").utf8))
             } else {
                 print(output.text, terminator: "")
