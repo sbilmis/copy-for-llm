@@ -78,7 +78,10 @@ By default these are skipped as binary. Turn extraction on in
   read with OCR.
 - **Images** (`.png`, `.jpg`, `.heic`, …) — text read out of the picture, so a
   screenshot of an error message becomes text you can paste.
-- **Word, RTF, OpenDocument** — the document's text.
+- **Word** (`.docx`), **PowerPoint** (`.pptx`), **Excel** (`.xlsx`) — read
+  directly from the file. Slides are labelled and kept in order; spreadsheet rows
+  come out tab-separated so tables survive the paste.
+- **RTF and OpenDocument** — the document's text.
 
 **Images are handled carefully by default.** "Only files I select directly"
 means an image you right-click is read, but images found while walking a folder
@@ -92,7 +95,9 @@ All recognition runs on your Mac using Apple's Vision framework. Nothing is
 uploaded, no API key is needed, and it works offline. Extracted text also costs
 far fewer tokens than pasting the image into a multimodal model.
 
-PowerPoint and Excel aren't supported yet — see [ROADMAP.md](ROADMAP.md).
+Apple Keynote (`.key`) and Pages aren't supported — those formats are
+undocumented, and no tool reads them without Apple's own apps. Export to PDF or
+PowerPoint first.
 
 ## Presets
 

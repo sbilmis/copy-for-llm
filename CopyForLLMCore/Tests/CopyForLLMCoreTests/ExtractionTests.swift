@@ -34,7 +34,10 @@ import Testing
 
     @Test func richDocumentsAndUnknowns() {
         let settings = ExtractionSettings()
+        // .docx goes to the OOXML parser; .rtf/.odt to AppKit's reader.
         #expect(ExtractionPlanner.kind(forFileName: "r.docx", settings: settings,
+                                       directlySelected: false) == .officeXML)
+        #expect(ExtractionPlanner.kind(forFileName: "r.odt", settings: settings,
                                        directlySelected: false) == .richDocument)
         #expect(ExtractionPlanner.kind(forFileName: "m.swift", settings: settings,
                                        directlySelected: false) == nil)

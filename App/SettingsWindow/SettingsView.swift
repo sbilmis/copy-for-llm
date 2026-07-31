@@ -102,7 +102,7 @@ private struct ExtractionTab: View {
                 Toggle("Read scanned PDF pages with OCR", isOn: $settings.extraction.ocrScannedPDFs)
                     .disabled(!settings.extraction.pdf)
                     .padding(.leading, 18)
-                Toggle("Extract text from Word, RTF and OpenDocument files",
+                Toggle("Extract text from Word, PowerPoint, Excel and OpenDocument files",
                        isOn: $settings.extraction.richDocuments)
             }
 

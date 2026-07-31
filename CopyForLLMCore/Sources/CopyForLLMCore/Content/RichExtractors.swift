@@ -25,6 +25,31 @@ public enum RichExtractor {
             return try await imageText(url: url, settings: settings)
         case .richDocument:
             return try richDocumentText(url: url)
+        case .officeXML:
+            return try officeXMLText(url: url)
+        }
+    }
+
+    // MARK: PowerPoint / Excel / Word (Office Open XML)
+
+    static func officeXMLText(url: URL) throws -> String {
+        guard let data = try? Data(contentsOf: url) else { throw ExtractionError.unreadable }
+        switch url.pathExtension.lowercased() {
+        case "pptx":
+            return try OOXMLExtractor.pptxText(data: data)
+        case "xlsx":
+            return try OOXMLExtractor.xlsxText(data: data)
+        case "docx":
+            do {
+                return try OOXMLExtractor.docxText(data: data)
+            } catch ExtractionError.noTextFound {
+                throw ExtractionError.noTextFound
+            } catch {
+                // Malformed or unusual .docx — AppKit's reader is more forgiving.
+                return try richDocumentText(url: url)
+            }
+        default:
+            throw ExtractionError.unreadable
         }
     }
 

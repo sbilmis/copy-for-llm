@@ -19,23 +19,39 @@ Intelligence, and it's a Python package — which the sandboxed Quick Action
 extensions cannot invoke at all. Apple's Vision is better for this job and keeps
 the "nothing leaves your Mac" promise.
 
+### PowerPoint, Excel and Word ✅
+
+Shipped. `.pptx`, `.xlsx` and `.docx` are parsed natively — a minimal ZIP reader
+over the `Compression` framework, then the XML text parts. No dependency, and it
+works inside the sandboxed Quick Actions, so right-click and the Options window
+behave identically.
+
+Pandoc was considered and deferred rather than rejected: it reads `.pptx`,
+`.xlsx`, `.docx`, `.odt` and `.epub`, and would give better *structure*
+(Markdown tables and headings) than raw text. But it cannot read PDF at all, it
+is an external binary the sandboxed extensions cannot invoke, and shipping both
+paths would mean the same file producing different output depending on which
+entry point was used. The `ExtractionKind` seam makes adding it cheap if anyone
+hits the limits of the native parser.
+
 ## Next
 
-### 1. PowerPoint and Excel
+### 1. Optional Pandoc for richer structure
 
-The one real gap left. `.pptx` / `.xlsx` / `.epub` have no native macOS text
-extraction. Options, in preference order:
+Only worth building on real demand. Would preserve headings, lists and tables as
+Markdown instead of flat text, and add `.epub`. Must be opt-in, must report
+clearly when Pandoc isn't installed, and must not silently diverge from the
+native path — probably by routing the Quick Action through the main app when
+enabled.
 
-- **Pandoc** — a single self-contained Homebrew binary, no Python environment.
-  Shell out when present, degrade gracefully when absent.
-- **MarkItDown** — wider format list, but needs Python plus `pip install`.
-- **Native ZIP+XML parsing** — both are zipped XML; no dependency, but real work
-  and ongoing maintenance.
+### 2. Apple Keynote and Pages
 
-Either external tool can only run from the **main app**, never the sandboxed
-Quick Actions, so this belongs on the Options window path.
+`.key` and `.pages` are undocumented protobuf bundles; no third-party tool reads
+them. The only reliable route is AppleScript automation of the Apple app itself
+to export, which needs the app installed, an Automation permission prompt, and
+main-app-only execution.
 
-### 2. First-run extension check
+### 3. First-run extension check
 
 Detect whether the Quick Actions are actually enabled and say so in the Getting
 Started window, with a button to the right settings pane. Right now a new user

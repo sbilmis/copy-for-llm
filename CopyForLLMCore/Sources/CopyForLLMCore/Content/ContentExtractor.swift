@@ -10,6 +10,8 @@ public enum ExtractionKind: String, Sendable, Codable {
     case imageOCR
     /// Word/RTF/OpenDocument/HTML via AppKit's document readers.
     case richDocument
+    /// PowerPoint or Excel, parsed straight from the Office Open XML.
+    case officeXML
 }
 
 public enum OCRMode: String, Codable, Sendable, CaseIterable {
@@ -96,8 +98,13 @@ public enum ExtractionPlanner {
     ]
 
     static let richDocumentExtensions: Set<String> = [
-        "docx", "doc", "rtf", "rtfd", "odt", "webarchive",
+        "doc", "rtf", "rtfd", "odt", "webarchive",
     ]
+
+    /// Handled by the native Office Open XML parser. `.docx` is here rather than in
+    /// `richDocumentExtensions` because the OOXML parser preserves paragraph breaks
+    /// that NSAttributedString flattens.
+    static let officeXMLExtensions: Set<String> = ["docx", "pptx", "xlsx"]
 
     /// The extraction kind for `fileName`, or nil if the file isn't one we can
     /// extract beyond plain text.
@@ -118,6 +125,9 @@ public enum ExtractionPlanner {
             case .selectedOnly: return directlySelected ? .imageOCR : nil
             case .always: return .imageOCR
             }
+        }
+        if officeXMLExtensions.contains(ext) {
+            return settings.richDocuments ? .officeXML : nil
         }
         if richDocumentExtensions.contains(ext) {
             return settings.richDocuments ? .richDocument : nil

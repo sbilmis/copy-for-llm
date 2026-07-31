@@ -52,13 +52,15 @@ default, so this is a one-time setup.
 bar opens Settings, the Options window, or a file picker if you'd rather not use
 Finder.
 
-## PDFs and screenshots become text
+## PDFs, slides and screenshots become text
 
-Turn on **Settings → Documents** and a PDF, a screenshot, or a Word file copies
-as its *text* instead of being skipped as binary. Scanned PDFs and images are
-read with OCR — on-device via Apple's Vision framework, so nothing is uploaded,
-no API key is needed, and it works offline. Extracted text also costs a fraction
-of the tokens an image does.
+Turn on **Settings → Documents** and PDFs, Word documents, PowerPoint decks,
+Excel sheets and screenshots copy as their *text* instead of being skipped as
+binary. Scanned PDFs and images are read with OCR.
+
+All of it runs on your Mac — Apple's Vision framework for OCR, a native parser
+for Office files. Nothing is uploaded, no API key is needed, and it works
+offline. Extracted text also costs a fraction of the tokens an image does.
 
 ## Junk is skipped automatically
 
@@ -85,7 +87,7 @@ estimate update live.
 
 ## Roadmap
 
-Next up: PowerPoint and Excel support, git-diff mode ("copy only what changed"),
-exact tokenizer counts, and archive support. See [ROADMAP.md](ROADMAP.md).
+Next up: git-diff mode ("copy only what changed"), exact tokenizer counts, and
+archive support. See [ROADMAP.md](ROADMAP.md).
 
 Requires macOS 14 or later. MIT licensed — see [LICENSE](LICENSE).
