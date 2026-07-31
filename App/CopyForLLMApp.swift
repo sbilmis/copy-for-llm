@@ -2,17 +2,63 @@ import AppKit
 import CopyForLLMCore
 import SwiftUI
 
+/// A menu-bar-only app (`LSUIElement`) gets no window when it is launched, and
+/// AppKit sends no `open` event when an already-running one is opened again.
+/// Without this the app looks broken: you double-click it and nothing happens.
+final class AppDelegate: NSObject, NSApplicationDelegate {
+
+    /// Assigned by the scene once SwiftUI is able to open windows. Any request
+    /// that arrived before then is replayed immediately.
+    var showMainWindow: (() -> Void)? {
+        didSet {
+            guard pendingShow, showMainWindow != nil else { return }
+            pendingShow = false
+            showMainWindow?()
+        }
+    }
+
+    private var pendingShow = false
+    private var handledURL = false
+
+    /// The Options… Quick Action launches us with a URL and opens its own window.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        handledURL = true
+    }
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        // `application(_:open:)` can arrive just after this, so wait a moment
+        // before concluding this was a plain launch.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
+            guard let self, !self.handledURL else { return }
+            self.requestMainWindow()
+        }
+    }
+
+    /// Fires when the app is already running and the user opens it again.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
+        requestMainWindow()
+        return true
+    }
+
+    private func requestMainWindow() {
+        if let showMainWindow {
+            showMainWindow()
+        } else {
+            pendingShow = true
+        }
+    }
+}
+
 @main
 struct CopyForLLMApp: App {
 
-    private static let hasLaunchedKey = "hasLaunchedBefore"
-
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var model = AppModel.shared
     @Environment(\.openWindow) private var openWindow
 
     var body: some Scene {
         // LSUIElement is set, so there is no Dock icon and no app menu bar —
-        // this is the only always-available entry point to the app.
+        // this is the always-available entry point to the app.
         MenuBarExtra {
             Button("Choose Files or Folder…") { chooseAndOpenOptions() }
                 .keyboardShortcut("o")
@@ -28,9 +74,9 @@ struct CopyForLLMApp: App {
                 .keyboardShortcut("q")
         } label: {
             // The label is built at launch, unlike the menu content, so this is
-            // where first-run onboarding can be triggered.
+            // the earliest point the scene can hand a window opener to the delegate.
             Image(systemName: "doc.on.clipboard")
-                .task { showWelcomeOnFirstLaunch() }
+                .task { appDelegate.showMainWindow = { openWelcome() } }
         }
 
         Window("Copy for LLM", id: "main") {
@@ -53,15 +99,6 @@ struct CopyForLLMApp: App {
             SettingsView()
                 .environment(model)
         }
-    }
-
-    /// New users have no Finder selection yet and no reason to know the Quick
-    /// Actions need enabling, so show the guide once.
-    private func showWelcomeOnFirstLaunch() {
-        let defaults = UserDefaults.standard
-        guard !defaults.bool(forKey: Self.hasLaunchedKey) else { return }
-        defaults.set(true, forKey: Self.hasLaunchedKey)
-        openWelcome()
     }
 
     private func openWelcome() {

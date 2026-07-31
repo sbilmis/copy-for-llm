@@ -45,6 +45,8 @@ struct WelcomeView: View {
                 }
             }
             .labelStyle(.titleAndIcon)
+            // Without this the rows truncate to one line each instead of wrapping.
+            .fixedSize(horizontal: false, vertical: true)
 
             Divider()
 
@@ -53,10 +55,26 @@ struct WelcomeView: View {
                     let url = URL(string: "x-apple.systempreferences:com.apple.ExtensionsPreferences")!
                     NSWorkspace.shared.open(url)
                 }
-                Button("Choose Files or Folder…") { chooseSelection() }
                 Spacer()
                 Button("Re-copy Last Output") { model.recopyLastOutput() }
                     .disabled(model.store.loadLastOutput() == nil)
+            }
+
+            Divider()
+
+            // Finder isn't the only way in: this is the entry point for anyone
+            // who'd rather pick files from the app itself.
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Prefer to choose files here?").font(.headline)
+                    Text("Pick files or a folder and review the output before copying.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button("Choose Files or Folder…") { chooseSelection() }
+                    .buttonStyle(.borderedProminent)
+                    .keyboardShortcut(.defaultAction)
             }
         }
         .padding(24)
