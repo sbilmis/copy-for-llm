@@ -1,7 +1,7 @@
 # Developing & Releasing Copy for LLM
 
-Working notes for maintaining this project — the day-to-day loop, the release
-pipeline, and the macOS-specific traps that cost time to diagnose.
+Build instructions, the release pipeline, and reference notes on the macOS
+extension APIs this project depends on.
 
 ## Layout
 
@@ -150,50 +150,68 @@ Bump `MARKETING_VERSION` in `project.yml` and `version` in the cask together.
 
 Regenerate the icon after editing the generator: `swift Packaging/make-icon.swift`.
 
-## Traps already hit (don't rediscover these)
+## macOS platform notes
+
+Non-obvious behaviour of the extension, signing and notarization APIs. Each of
+these has a corresponding safeguard in the build config or source.
+
+**Finder passes attachments under each file's own UTI.** A `.md` file arrives as
+`net.daringfireball.markdown`, not `public.file-url`. Filtering `NSItemProvider`s
+on a single type identifier silently drops the whole selection; the handler then
+sees nothing and cancels the request, which surfaces afterwards as a ShareKit
+abort (`Extension Context does not have a Principal Object`) rather than an
+obvious error. `QuickActionRunner.fileURL(from:)` tries the URL types first and
+then falls back to whatever the provider advertises, logging both.
 
 **Notarization rejects `get-task-allow`.** Xcode injects the debugger-attach
-entitlement into every binary, and Apple treats it as a critical error. Fixed by
-`CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO` on the Release config in `project.yml`.
+entitlement into every binary and Apple treats it as a critical error. Disabled
+by `CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO` on the Release config in
+`project.yml`.
 
-**`notarytool submit` exits 0 even when Apple rejects the archive** — the exit
-code reflects the upload, not the verdict. `notarize.sh` greps for
-`status: Accepted` and aborts otherwise; keep that check. To read a verdict
-later: `xcrun notarytool log <submission-id> --keychain-profile copyforllm`.
+**`notarytool submit` exits 0 even when Apple rejects the archive.** The exit
+code reflects the upload, not the verdict, so `notarize.sh` checks for
+`status: Accepted` before stapling. To read a verdict later:
+`xcrun notarytool log <submission-id> --keychain-profile copyforllm`.
 
-**`NSExtensionPrincipalClass` must be a bare `@objc` name.** A module-qualified
-Swift name (`CopyDefaultAction.ActionRequestHandler`) does not resolve. Each
-handler is exposed as `@objc(CopyForLLM<Dir>Handler)` and `project.yml`
-references that. Verify with:
+**`NSExtensionPrincipalClass` accepts either naming form.** A module-qualified
+Swift name (`Module.ClassName`) and a bare `@objc` name both resolve. This
+project uses `@objc(CopyForLLM<Dir>Handler)` so the value in `project.yml`
+survives a target rename. Confirm the symbol is present with:
 
 ```bash
 nm ".../CopyDefaultAction.appex/Contents/MacOS/CopyDefaultAction" \
   | grep CopyForLLMCopyDefaultHandler
 ```
 
-**pkd refuses to register unsandboxed app extensions.** The symptom is
+**pkd will not register unsandboxed app extensions.** The symptom is
 `pluginkit -a` succeeding while `pkd` logs `Final plugin count: 0`. The
-extensions are therefore sandboxed, and reach the shared settings directory via
-a `temporary-exception` entitlement. That entitlement is the main thing standing
-between this app and the Mac App Store — a real App Group would replace it, and
-`SharedStore.init(directory:)` already takes an injectable path for exactly that.
+extensions are therefore sandboxed and reach the shared settings directory
+through a `temporary-exception` entitlement. Replacing that with a real App
+Group is the main prerequisite for a Mac App Store build;
+`SharedStore.init(directory:)` already accepts an injectable path for it.
 
-**`pbs -dump` does not list extension-based Quick Actions.** Searching it for
-the app name returns nothing even when everything works — built-in actions like
-Rotate and Markup are equally absent. It is not a diagnostic; use
-`pluginkit -m -p com.apple.services`.
+**`pbs -dump` does not list extension-based Quick Actions.** It returns nothing
+for this app even when everything works, and built-in actions such as Rotate and
+Markup are equally absent. Use `pluginkit -m -p com.apple.services` instead.
 
-**`nonisolated(unsafe)` locals are not portable.** Passing `NSExtensionContext`
-into a `Task` compiled on Swift 6.3 but failed on CI's 6.0. Use the explicit
-`Unchecked<T>` box in `CopyActionHandler.swift`.
+**`nonisolated(unsafe)` locals are not portable across toolchains.** Passing
+`NSExtensionContext` into a `Task` compiles on Swift 6.3 but fails on 6.0. The
+explicit `Unchecked<T>` box in `Extensions/Shared/QuickActionRunner.swift` works
+on both.
+
+**LSUIElement removes the main menu as well as the Dock icon.** Anything routed
+through the responder chain stops working: opening Settings requires
+`SettingsLink` rather than `NSApp.sendAction(showSettingsWindow:)`, and an
+already-running app receives no open event, so `AppDelegate` handles
+`applicationShouldHandleReopen` to surface a window.
 
 **CI needs `CODE_SIGNING_ALLOWED=NO`.** The extensions declare entitlements, and
-signing those fails with exit 65 on a runner with no identity.
+signing them fails with exit 65 on a runner with no identity.
 
 ## Testing checklist before a release
 
-Unit tests cover the engine; these need a human because Finder can't be driven
-headlessly:
+Unit tests cover the engine. Finder cannot be driven headlessly, so these
+require manual verification:
 
 - Single text file → contents only, no tree
 - Folder → tree + contents

@@ -3,46 +3,42 @@
 Ordered by priority. Everything here is a frontend or a plug-in point over
 `CopyForLLMCore` — see [DEVELOPING.md](DEVELOPING.md) for the architecture.
 
-## Done
+## Shipped
 
-### OCR and PDF text extraction ✅
+**Document and image text extraction** (v0.2.0). PDF text layers via PDFKit,
+scanned pages and images via Vision OCR, and Word, RTF and OpenDocument files
+via `NSAttributedString`. Configurable under Settings → Documents.
 
-Shipped. PDFs (text layer, with Vision OCR for scanned pages), images, and
-Word/RTF/OpenDocument files are extracted to text via PDFKit, Vision and
-`NSAttributedString` — all on-device, no dependencies, no API keys. Configurable
-in Settings → Documents.
+**PowerPoint, Excel and Word** (v0.2.0). Parsed natively with a minimal ZIP
+reader over the `Compression` framework and an Office Open XML text extractor,
+so behaviour is identical in the Quick Actions and the Options window.
 
-Deliberately **not** built on [MarkItDown](https://github.com/microsoft/markitdown):
-it performs no local OCR (images need an LLM client or the `markitdown-ocr`
-plugin, which calls an LLM Vision API), scanned PDFs need Azure Document
-Intelligence, and it's a Python package — which the sandboxed Quick Action
-extensions cannot invoke at all. Apple's Vision is better for this job and keeps
-the "nothing leaves your Mac" promise.
+## Design constraint: no external tools
 
-### PowerPoint, Excel and Word ✅
+Text extraction runs entirely on-device with system frameworks. Two constraints
+drive that choice, and they apply to any future format work:
 
-Shipped. `.pptx`, `.xlsx` and `.docx` are parsed natively — a minimal ZIP reader
-over the `Compression` framework, then the XML text parts. No dependency, and it
-works inside the sandboxed Quick Actions, so right-click and the Options window
-behave identically.
+1. **The Quick Action extensions are sandboxed** and cannot invoke external
+   binaries. Anything depending on a separate tool works only in the main app,
+   which would make the same file produce different output depending on the
+   entry point used.
+2. **No content may leave the machine.** OCR that relies on a hosted model would
+   require an API key and upload user files.
 
-Pandoc was considered and deferred rather than rejected: it reads `.pptx`,
-`.xlsx`, `.docx`, `.odt` and `.epub`, and would give better *structure*
-(Markdown tables and headings) than raw text. But it cannot read PDF at all, it
-is an external binary the sandboxed extensions cannot invoke, and shipping both
-paths would mean the same file producing different output depending on which
-entry point was used. The `ExtractionKind` seam makes adding it cheap if anyone
-hits the limits of the native parser.
+This rules out [MarkItDown](https://github.com/microsoft/markitdown) for the OCR
+path: it performs no local recognition (images require an LLM client or the
+`markitdown-ocr` plugin, which calls a hosted Vision API) and scanned PDFs
+require Azure Document Intelligence. Pandoc reads `.pptx`, `.xlsx`, `.docx`,
+`.odt` and `.epub`, but cannot read PDF at all and is an external binary.
 
 ## Next
 
 ### 1. Optional Pandoc for richer structure
 
-Only worth building on real demand. Would preserve headings, lists and tables as
-Markdown instead of flat text, and add `.epub`. Must be opt-in, must report
-clearly when Pandoc isn't installed, and must not silently diverge from the
-native path — probably by routing the Quick Action through the main app when
-enabled.
+Would preserve headings, lists and tables as Markdown rather than flat text, and
+add `.epub`. Requires opt-in, a clear status when Pandoc is not installed, and a
+way to avoid diverging from the native path — most likely by routing the Quick
+Action through the main app when enabled.
 
 ### 2. Apple Keynote and Pages
 
@@ -53,13 +49,16 @@ main-app-only execution.
 
 ### 3. First-run extension check
 
-Detect whether the Quick Actions are actually enabled and say so in the Getting
-Started window, with a button to the right settings pane. Right now a new user
-who misses that step sees nothing in Finder and assumes the app is broken.
+Detect whether the Quick Actions are enabled and report it in the Getting
+Started window, with a button to the relevant settings pane. A user who misses
+that step sees nothing in Finder and has no indication why.
 
-### 3. Screenshots in the README
+### 4. Verify the minimum supported macOS version
 
-The whole pitch is visual and the README currently asks people to imagine it.
+The manifest and cask both declare macOS 14. The extension, signing and
+notarization behaviour documented in [DEVELOPING.md](DEVELOPING.md) has only
+been exercised on macOS 26. Either test on 14 and 15 or raise the declared
+minimum to a version that has been verified.
 
 ## Later
 
@@ -67,7 +66,6 @@ The whole pitch is visual and the README currently asks people to imagine it.
 - **Exact token counts** — swap the chars÷4 heuristic for a real tokenizer
   behind the existing `TokenEstimating` protocol
 - **Automatic chunking** — split output that exceeds a context window
-- **Office documents** — `.docx`, `.pptx`, `.xlsx` text extraction
 - **Archives** — read inside `.zip` / `.tar.gz` without unpacking
 - **Drag-and-drop window** — drop files onto the menu bar icon
 - **Standalone CLI release** — `llmcopy` already exists as a dev harness in

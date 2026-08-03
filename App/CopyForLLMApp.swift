@@ -4,7 +4,7 @@ import SwiftUI
 
 /// A menu-bar-only app (`LSUIElement`) gets no window when it is launched, and
 /// AppKit sends no `open` event when an already-running one is opened again.
-/// Without this the app looks broken: you double-click it and nothing happens.
+/// Both cases would otherwise leave the app with no visible response.
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// Assigned by the scene once SwiftUI is able to open windows. Any request
