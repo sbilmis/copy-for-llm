@@ -6,30 +6,30 @@ extension APIs this project depends on.
 ## Layout
 
 ```
-CopyForLLMCore/     Swift package — ALL logic lives here, plus the unit tests
+CopyForLLMCore/     Swift package: ALL logic lives here, plus the unit tests
 App/                SwiftUI menu-bar app (Options window, Settings, MenuBarExtra)
 Extensions/         Four Quick Action targets; Shared/ holds the real handler
 Packaging/          Icon generator, DMG + notarization scripts, Homebrew cask
-project.yml         XcodeGen manifest — the .xcodeproj is generated, never edited
+project.yml         XcodeGen manifest; the .xcodeproj is generated, never edited
 ```
 
 The app, the four extensions, and the CLI are all thin frontends over
 `CopyPipeline.run(_:)`. Any new frontend (Raycast, Alfred, a real CLI release)
 should call that and nothing else.
 
-**Never edit `CopyForLLM.xcodeproj`** — it is git-ignored and regenerated from
+**Never edit `CopyForLLM.xcodeproj`.** It is git-ignored and regenerated from
 `project.yml` by `xcodegen generate`. Changes made in Xcode's UI are lost.
 
 ## Day-to-day
 
 ```bash
-make test        # core unit tests — fastest feedback, no Xcode project needed
+make test        # core unit tests, fastest feedback, no Xcode project needed
 make generate    # regenerate the .xcodeproj after editing project.yml
 make build       # Debug build
 make install     # build + copy to /Applications
 ```
 
-Iterating on engine logic doesn't need the app at all — use the CLI harness:
+Iterating on engine logic doesn't need the app at all. Use the CLI harness:
 
 ```bash
 cd CopyForLLMCore
@@ -53,7 +53,7 @@ for x in "/Applications/Copy for LLM.app/Contents/PlugIns/"*.appex; do
     pluginkit -a "$x"
 done
 
-# 3. Enable them — newly registered Quick Actions default to DISABLED
+# 3. Enable them. Newly registered Quick Actions default to DISABLED
 for id in action-copy action-tree action-paths action-options; do
     pluginkit -e use -i app.copyforllm.$id
 done
@@ -62,7 +62,7 @@ done
 killall Finder
 ```
 
-Check the result — `+` means enabled, `-` disabled, blank means registered but
+Check the result. `+` means enabled, `-` disabled, blank means registered but
 never toggled:
 
 ```bash
@@ -76,7 +76,7 @@ General → Login Items & Extensions → Finder Quick Actions.
 ### Duplicate actions in the menu
 
 If each action appears **twice** in Finder or in System Settings, a stale copy is
-registered from somewhere other than `/Applications` — almost always the build
+registered from somewhere other than `/Applications`, almost always the build
 products in `.build/DerivedData/`, because `xcodebuild` runs
 `RegisterWithLaunchServices` on whatever it builds. A Debug build and an
 installed Release build therefore register two sets.
@@ -91,7 +91,7 @@ pluginkit -m -v -p com.apple.services | grep copyforllm \
   | while IFS= read -r p; do pluginkit -r "$p"; done
 ```
 
-`pluginkit -e ignore` only *hides* an entry — it still appears in System Settings
+`pluginkit -e ignore` only *hides* an entry. It still appears in System Settings
 and can be switched back on. Use `-r` to actually unregister, and delete the
 stale bundle so it isn't rediscovered. `make clean` removes DerivedData for this
 reason.
@@ -113,7 +113,7 @@ LaunchServices.framework/Support/lsregister -kill -r \
 
 Prerequisite, once: a **Developer ID Application** certificate in the keychain
 (Xcode → Settings → Accounts → Manage Certificates → +) and a stored notary
-profile. The notary profile must use the account's **primary** Apple ID — an
+profile. The notary profile must use the account's **primary** Apple ID; an
 alias returns a confusing `401 Invalid credentials`.
 
 ```bash
@@ -130,7 +130,7 @@ DEVELOPER_ID="Developer ID Application: <name> (38X62GQ8HC)" Packaging/make-dmg.
 # 2. Notarize + staple (fails loudly and prints Apple's log if rejected)
 Packaging/notarize.sh Packaging/build/CopyForLLM-0.1.0.dmg
 
-# 3. Hash the STAPLED file — stapling rewrites the DMG, so the hash from
+# 3. Hash the STAPLED file. Stapling rewrites the DMG, so the hash from
 #    step 1 is already stale. This value goes in Packaging/copy-for-llm.rb.
 shasum -a 256 Packaging/build/CopyForLLM-0.1.0.dmg
 
@@ -139,7 +139,7 @@ gh release create v0.1.0 Packaging/build/CopyForLLM-0.1.0.dmg \
   --title "v0.1.0" --notes "..."
 ```
 
-Confirm the result — you want `source=Notarized Developer ID`:
+Confirm the result. You want `source=Notarized Developer ID`:
 
 ```bash
 spctl -a -t open --context context:primary-signature -v \

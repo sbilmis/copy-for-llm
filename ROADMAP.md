@@ -1,7 +1,7 @@
 # Roadmap
 
 Ordered by priority. Everything here is a frontend or a plug-in point over
-`CopyForLLMCore` — see [DEVELOPING.md](DEVELOPING.md) for the architecture.
+`CopyForLLMCore`. See [DEVELOPING.md](DEVELOPING.md) for the architecture.
 
 ## Shipped
 
@@ -37,7 +37,7 @@ require Azure Document Intelligence. Pandoc reads `.pptx`, `.xlsx`, `.docx`,
 
 Would preserve headings, lists and tables as Markdown rather than flat text, and
 add `.epub`. Requires opt-in, a clear status when Pandoc is not installed, and a
-way to avoid diverging from the native path — most likely by routing the Quick
+way to avoid diverging from the native path, most likely by routing the Quick
 Action through the main app when enabled.
 
 ### 2. Apple Keynote and Pages
@@ -62,18 +62,18 @@ minimum to a version that has been verified.
 
 ## Later
 
-- **Git diff mode** — "copy only what changed" against `HEAD` or a branch
-- **Exact token counts** — swap the chars÷4 heuristic for a real tokenizer
+- **Git diff mode:** "copy only what changed" against `HEAD` or a branch
+- **Exact token counts:** swap the chars÷4 heuristic for a real tokenizer
   behind the existing `TokenEstimating` protocol
-- **Automatic chunking** — split output that exceeds a context window
-- **Archives** — read inside `.zip` / `.tar.gz` without unpacking
-- **Drag-and-drop window** — drop files onto the menu bar icon
-- **Standalone CLI release** — `llmcopy` already exists as a dev harness in
+- **Automatic chunking:** split output that exceeds a context window
+- **Archives:** read inside `.zip` / `.tar.gz` without unpacking
+- **Drag-and-drop window:** drop files onto the menu bar icon
+- **Standalone CLI release:** `llmcopy` already exists as a dev harness in
   `CopyForLLMCore`; it needs argument polish, a Homebrew formula, and docs
-- **Raycast / Alfred / Keyboard Maestro** — thin frontends over the same engine
-- **Global hotkey** — trigger from any app, not just Finder (needs Automation
+- **Raycast / Alfred / Keyboard Maestro:** thin frontends over the same engine
+- **Global hotkey:** trigger from any app, not just Finder (needs Automation
   permission to read the Finder selection)
-- **Mac App Store build** — requires replacing the extensions'
+- **Mac App Store build:** requires replacing the extensions'
   `temporary-exception` entitlement with a real App Group and sandboxing the
   main app
 
@@ -83,4 +83,4 @@ minimum to a version that has been verified.
   storing full codebase dumps on disk is a privacy liability. "Re-copy Last
   Output" covers the real need.
 - **Sending directly to an LLM.** Would mean API keys, network access, and a
-  privacy story this app currently doesn't need — everything stays on your Mac.
+  privacy story this app currently doesn't need. Everything stays on your Mac.

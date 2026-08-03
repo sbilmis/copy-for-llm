@@ -6,28 +6,28 @@ Everything the app can do. For a two-minute overview, see the [README](README.md
 
 Select anything in Finder, right-click, open **Quick Actions ▸**.
 
-**Copy for LLM** — the one you'll use most. On a folder you get the directory
+**Copy for LLM.** The one you'll use most. On a folder you get the directory
 tree followed by every text file's contents. On files you get just their
 contents. Uses whatever defaults you've set.
 
-**Copy Tree for LLM** — the tree alone. Good for asking "where should this new
+**Copy Tree for LLM.** The tree alone. Good for asking "where should this new
 file go?" without pasting a whole codebase.
 
-**Copy Paths** — the file paths, as absolute paths, paths relative to the
+**Copy Paths.** The file paths, as absolute paths, paths relative to the
 enclosing folder, or bare filenames (Settings → General).
 
-**Copy for LLM (Options…)** — opens a window instead of copying immediately.
+**Copy for LLM (Options…).** Opens a window instead of copying immediately.
 
 ## The Options window
 
 Use this when the default copy is too big, or you want to shape it.
 
-- **Preset** — a saved bundle of settings (see below)
-- **Mode** — automatic, contents only, tree only, tree + contents, or paths
-- **Format** — Markdown, XML, Plain, or JSON
-- **Template** — a prompt prepended to the output
-- **Include only / Exclude** — space-separated patterns, e.g. `*.py *.md`
-- **Preview** — the actual output, editable before you copy. Press **⌘F** to
+- **Preset:** a saved bundle of settings (see below)
+- **Mode:** automatic, contents only, tree only, tree + contents, or paths
+- **Format:** Markdown, XML, Plain, or JSON
+- **Template:** a prompt prepended to the output
+- **Include only / Exclude:** space-separated patterns, e.g. `*.py *.md`
+- **Preview:** the actual output, editable before you copy. Press **⌘F** to
   search it.
 
 The bar along the bottom shows file count, estimated tokens, character count,
@@ -37,29 +37,29 @@ filter.
 
 ## Output formats
 
-**Markdown** (default) — `## path` headings with language-tagged code fences.
+**Markdown** (default) uses `## path` headings with language-tagged code fences.
 The best default for chat interfaces.
 
-**XML** — `<file_tree>` and `<document path=…>` tags. Follows Claude's prompt
+**XML** uses `<file_tree>` and `<document path=…>` tags. Follows Claude's prompt
 conventions and tends to work well for long contexts.
 
-**Plain** — `===== path =====` separators. Smallest overhead, fewest tokens.
+**Plain** uses `===== path =====` separators. Smallest overhead, fewest tokens.
 
-**JSON** — structured output for feeding an API rather than a chat window.
+**JSON** gives structured output for feeding an API rather than a chat window.
 
 ## What gets skipped, and in what order
 
-Rules are checked in this order — **the first match wins**:
+Rules are checked in this order. The first match wins:
 
-1. **Your exclude patterns** — always win, nothing overrides them
-2. **Your include patterns** — when set, only matching files are copied, and a
-   match here overrides everything below
-3. **`.llmignore`** — same syntax as `.gitignore`, for LLM-specific exclusions
-4. **`.gitignore`** — respected by default, including nested files and `!` rules
-5. **Built-in defaults** — dependency folders, build output, media, archives,
-   and credentials
+1. **Your exclude patterns.** These always win; nothing overrides them.
+2. **Your include patterns.** When set, only matching files are copied, and a
+   match here overrides everything below.
+3. **`.llmignore`.** Same syntax as `.gitignore`, for LLM-specific exclusions.
+4. **`.gitignore`.** Respected by default, including nested files and `!` rules.
+5. **Built-in defaults.** Dependency folders, build output, media, archives,
+   and credentials.
 
-Beyond those rules: binary files are detected by content (not just extension),
+Beyond those rules: binary files are detected by content rather than extension,
 symlinks are never followed, and text is decoded as UTF-8 with a Latin-1
 fallback.
 
@@ -74,37 +74,37 @@ Patterns use `.gitignore` syntax: `*.log`, `build/`, `docs/*.md`, `**/temp`,
 By default these are skipped as binary. Turn extraction on in
 **Settings → Documents** and their text is copied like any source file:
 
-- **PDFs** — the text layer, page by page. Scanned pages with no text layer are
+- **PDFs:** the text layer, page by page. Scanned pages with no text layer are
   read with OCR.
-- **Images** (`.png`, `.jpg`, `.heic`, …) — text read out of the picture, so a
+- **Images** (`.png`, `.jpg`, `.heic`, …): text read out of the picture, so a
   screenshot of an error message becomes text you can paste.
-- **Word** (`.docx`), **PowerPoint** (`.pptx`), **Excel** (`.xlsx`) — read
+- **Word** (`.docx`), **PowerPoint** (`.pptx`) and **Excel** (`.xlsx`): read
   directly from the file. Slides are labelled and kept in order; spreadsheet rows
   come out tab-separated so tables survive the paste.
-- **RTF and OpenDocument** — the document's text.
+- **RTF and OpenDocument:** the document's text.
 
-**Images are handled carefully by default.** "Only files I select directly"
-means an image you right-click is read, but images found while walking a folder
-are skipped — otherwise copying a project with an assets directory would be slow
+**Images are handled conservatively by default.** "Only files I select directly"
+means an image you right-click is read, while images found inside a folder are
+skipped. Without that, copying a project with an assets directory would be slow
 and mostly noise. Switch to "Always" if you want everything read.
 
-**OCR quality**: Accurate is slower and handles photos and awkward layouts; Fast
+**OCR quality.** Accurate is slower and handles photos and awkward layouts. Fast
 suits clean screenshots of text.
 
 All recognition runs on your Mac using Apple's Vision framework. Nothing is
 uploaded, no API key is needed, and it works offline. Extracted text also costs
 far fewer tokens than pasting the image into a multimodal model.
 
-Apple Keynote (`.key`) and Pages aren't supported — those formats are
-undocumented, and no tool reads them without Apple's own apps. Export to PDF or
-PowerPoint first.
+Apple Keynote (`.key`) and Pages aren't supported. Those formats are
+undocumented and no tool reads them without Apple's own apps, so export to PDF
+or PowerPoint first.
 
 ## Presets
 
 A preset saves mode, format, filters, limits, and template under one name. Four
-ship with the app — Python Project, LaTeX Paper, Web Project, Configuration
-Files — and you can edit them or add your own in Settings → Presets, or by
-clicking **Save as Preset…** in the Options window.
+ship with the app: Python Project, LaTeX Paper, Web Project and Configuration
+Files. Edit them or add your own in Settings → Presets, or by clicking
+**Save as Preset…** in the Options window.
 
 Set a default preset in Settings and the plain **Copy for LLM** action will use
 it.
@@ -130,8 +130,8 @@ code. Tune the divisor in Settings → General if your content differs.
 ## Re-copying
 
 The most recent output is kept, so if you overwrite your clipboard you can get
-it back: menu bar icon → **Re-copy Last Output**. Only the last one is stored —
-this is deliberately not a clipboard history.
+it back: menu bar icon → **Re-copy Last Output**. Only the last one is stored.
+This is intentionally not a clipboard history.
 
 ## Troubleshooting
 
@@ -140,17 +140,17 @@ Settings → General → Login Items & Extensions → **Finder Quick Actions** a
 make sure they're on. They live inside the **Quick Actions ▸** submenu, not at
 the top level of the right-click menu.
 
-**Each action appears twice.** You have two copies of the app — usually one in
-`/Applications` and another elsewhere, such as a build folder or Downloads.
-Delete the one you don't want.
+**Each action appears twice.** You have two copies of the app installed, usually
+one in `/Applications` and another elsewhere, such as a build folder or
+Downloads. Delete the one you don't want.
 
 **The menu bar icon is missing.** macOS gives the menu bar a fixed amount of
 room, and when it runs out it pushes the newest icons off-screen without
-warning — more likely on a laptop with a notch. ⌘-drag your menu bar icons to
-reorder them, hide a few built-in ones under System Settings → Control Center,
-or use a menu bar manager such as Ice or Bartender. Copy for LLM still works
-without it: the Finder right-click actions are unaffected, and opening the app
-brings up its window.
+warning. This is more likely on a laptop with a notch. ⌘-drag your menu bar
+icons to reorder them, hide a few built-in ones under System Settings → Control
+Center, or use a menu bar manager such as Ice or Bartender. Copy for LLM still
+works without it: the Finder right-click actions are unaffected, and opening the
+app brings up its window.
 
 **Nothing was copied.** If everything you selected was binary, ignored, or
 empty, you'll get a notification saying so rather than a silent failure.
@@ -159,7 +159,7 @@ empty, you'll get a notification saying so rather than a silent failure.
 the limits in Settings.
 
 **A file you wanted was skipped.** Check the skip count in the Options window
-and hover it — it lists each file with the reason. Common causes: it's in
+and hover it. It lists each file with the reason. Common causes: the file is in
 `.gitignore`, it matched a default rule, or it exceeded the 1 MB per-file cap.
 
 ## Privacy
