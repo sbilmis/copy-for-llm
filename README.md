@@ -5,6 +5,13 @@ for Claude, ChatGPT, or Gemini: directory tree, file contents, junk filtered out
 
 No terminal. No config file. No app window to keep open.
 
+![Right-clicking a project folder in Finder, choosing Copy for LLM from the
+Quick Actions submenu, then pasting into Claude, which reports three policy
+violations and a SQL injection](docs/images/demo.gif)
+
+The folder above contains a `.env` full of API keys, a `venv/`, and a
+`server.log`. None of them were copied. The PDF in `docs/` was, as text.
+
 ```text
 project/
 ├── README.md
