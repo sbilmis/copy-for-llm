@@ -2,7 +2,7 @@
 
 Effective date: November 1, 2026
 
-Copy for LLM is developed by Selçuk Bilmiş. It prepares text from files and folders you select on your Mac.
+Copy for LLM is developed by Selcuk Bilmis. It prepares text from files and folders you select on your Mac.
 
 ## Processing and collection
 
